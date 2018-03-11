@@ -1,0 +1,11 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "target": "es2017",
+        "pretty": true,
+        "module": "commonjs",
+        "sourceMap": true,
+        "outDir": "./build",
+        "allowJs": true
+    }
+}

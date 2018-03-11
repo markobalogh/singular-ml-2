@@ -1,0 +1,22 @@
+{
+  "name": "singular-ml",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markobalogh/singular-ml-2.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/markobalogh/singular-ml-2/issues"
+  },
+  "homepage": "https://github.com/markobalogh/singular-ml-2#readme",
+  "dependencies": {
+    "@types/node": "^7.0.56"
+  }
+}
