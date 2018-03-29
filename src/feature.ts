@@ -1,4 +1,5 @@
 import {Plotter} from './Plotter';
+import * as utilities from './utilities';
 var plotter = new Plotter();
 
 export class Feature{
@@ -59,10 +60,57 @@ export class Feature{
         return this;
     }
 
-    // differentiate(window:number=1, relative:boolean=false):Feature {
+    /**
+     * Replaces each value with the derivative over the previous [window] values. Right now we don't support index features, so the derivative values will instead simply be the differentials across each window. If relative is true, then all derivatives will be normalized to a proportion of the value at the beginning of the window.
+     */
+    differentiate(window:number=1, relative:boolean=false):Feature {
+        let newFeature = new Feature(this.name, this.values);
+        if (relative) {
+            newFeature.values = this.values.slice(window).map((value,index)=>{
+                return (this.values[index] / this.values[index-window])-1;
+            });
+        } else {
+            newFeature.values = this.values.slice(window).map((value,index)=>{
+                return this.values[index] - this.values[index-window]
+            });
+        }
+        newFeature.values.unshift(...new Array(window).fill(NaN));
+        this.values = [...newFeature.values];
+        return this;
+    }
 
-    // }
+    /**
+     * Implements the clamp transformation on the feature in place. Refer to FOML page 74. If a clamp is unspecified, then no clamp is applied on that side (upper/lower).
+     */
 
+    clamp(lowerClamp?:number,upperClamp?:number):Feature {
+        if (upperClamp && !lowerClamp) {
+            this.values = this.values.map((value)=>{
+                return Math.min(value, upperClamp);
+            });
+        } else if (!upperClamp && lowerClamp) {
+            this.values = this.values.map((value)=>{
+                return Math.max(value, lowerClamp);
+            });
+        } else if (upperClamp && lowerClamp) {
+            this.values = this.values.map((value)=>{
+                return Math.max(Math.min(value, upperClamp), lowerClamp);
+            });
+        }
+        return this;
+    }
+
+    /**
+     * Implements the clamp transformation on the feature in place, clamping data to +/- [sigma] standard deviations from the mean.
+     * @param sigma 
+     */
+    clamp_sigma(sigma:number):Feature {
+        //Stores mean and std in memory instead of calculating them twice...efficiency savings for extremely large features.
+        let mean = utilities.mean(this.values);
+        let std = utilities.stdev(this.values);
+        this.clamp((mean - (sigma*std)), (mean + (sigma*std)));
+        return this;
+    }
 }
 
 // let x = new Feature('myfeature', [1,2,3,4,5,6]); 
