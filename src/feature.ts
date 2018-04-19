@@ -4,11 +4,14 @@ var plotter = new Plotter();
 
 export class Feature{
     /**
-     * Creates an instance of Feature.
+     * Creates an instance of Feature. 
+     * If `allowNonNumeric` is true, values will not be converted to type `number` when the feature is constructed.
      * @memberof Feature
      */
-    constructor(public name:string, public values:number[]=[]) {
-
+    constructor(public name:string, public values:any[]=[], allowNonNumeric:boolean=false) {
+        if (!allowNonNumeric) {
+            this.values = values.map((value)=>{return Number(value)});
+        }
     }
 
     getValue(index:number):number {

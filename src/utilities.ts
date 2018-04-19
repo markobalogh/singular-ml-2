@@ -13,3 +13,8 @@ export function stdev(values:number[], subtractOneFromDenominator:boolean=true):
 export function lastElementOf<someType>(array:someType[]):someType {
     return array[array.length - 1];
 }
+
+export function deepCopy<someType>(obj:someType):someType {
+    let returnObj:someType = JSON.parse(JSON.stringify(obj));
+    return returnObj
+}

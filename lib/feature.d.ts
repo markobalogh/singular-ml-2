@@ -1,11 +1,12 @@
 export declare class Feature {
     name: string;
-    values: number[];
+    values: any[];
     /**
      * Creates an instance of Feature.
+     * If `allowNonNumeric` is true, values will not be converted to type `number` when the feature is constructed.
      * @memberof Feature
      */
-    constructor(name: string, values?: number[]);
+    constructor(name: string, values?: any[], allowNonNumeric?: boolean);
     getValue(index: number): number;
     setValue(index: number, newValue: number): Feature;
     getSlice(startIndex: number, endIndex: number): number[];
@@ -20,4 +21,13 @@ export declare class Feature {
      * Replaces each value with the derivative over the previous [window] values. Right now we don't support index features, so the derivative values will instead simply be the differentials across each window. If relative is true, then all derivatives will be normalized to a proportion of the value at the beginning of the window.
      */
     differentiate(window?: number, relative?: boolean): Feature;
+    /**
+     * Implements the clamp transformation on the feature in place. Refer to FOML page 74. If a clamp is unspecified, then no clamp is applied on that side (upper/lower).
+     */
+    clamp(lowerClamp?: number, upperClamp?: number): Feature;
+    /**
+     * Implements the clamp transformation on the feature in place, clamping data to +/- [sigma] standard deviations from the mean.
+     * @param sigma
+     */
+    clamp_sigma(sigma: number): Feature;
 }
