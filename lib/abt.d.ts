@@ -9,16 +9,22 @@ export declare class ABT {
      * - **nested array**
      * - **array of objects**
      * - **object of arrays**
-     * @param initData
      */
     features: Feature[];
     constructor(initData?: any);
+    fromNestedArray(data: any[][]): ABT;
+    fromObjectOfArrays(data: {
+        [index: string]: any[];
+    }): ABT;
+    fromArrayOfObjects(data: {
+        [index: string]: any;
+    }[]): ABT;
+    fromFile(filename: string): ABT;
+    save(filename?: string): ABT;
     /**
      * Convenience property that allows you to access features in the ABT with `ABT._features.featureName` syntax, but **does not allow you to change any properties of the features**.
      */
     readonly _features: {
         [index: string]: Feature;
     };
-    fromNestedArray(data: any[][]): ABT;
-    fromFile(filename: string): ABT;
 }

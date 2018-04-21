@@ -1,0 +1,1 @@
+{"version":3,"file":"prediction.js","sourceRoot":"","sources":["../src/prediction.ts"],"names":[],"mappings":";;AAAA,yCAAoC;AAGpC;;GAEG;AACH,gBAAwB,SAAQ,mBAAQ;IACpC,YAAmB,MAAe,EAAS,aAA4B,EAAS,UAAoB;QAChG,KAAK,CAAC,MAAM,EAAE,aAAa,CAAC,CAAC;QADd,WAAM,GAAN,MAAM,CAAS;QAAS,kBAAa,GAAb,aAAa,CAAe;QAAS,eAAU,GAAV,UAAU,CAAU;IAEpG,CAAC;CACJ;AAJD,gCAIC"}

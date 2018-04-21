@@ -18,3 +18,7 @@ export function deepCopy<someType>(obj:someType):someType {
     let returnObj:someType = JSON.parse(JSON.stringify(obj));
     return returnObj
 }
+
+export function randomSample<someType>(collection:someType[], numberOfSamples:number):someType[] {
+    return _.sampleSize(collection, numberOfSamples);
+}

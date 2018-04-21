@@ -11,7 +11,6 @@ export class ABT {
      * - **nested array** 
      * - **array of objects**
      * - **object of arrays**
-     * @param initData 
      */
     features:Feature[] = [];
     constructor(private initData?:any) {

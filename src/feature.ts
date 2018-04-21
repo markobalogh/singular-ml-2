@@ -115,6 +115,3 @@ export class Feature{
         return this;
     }
 }
-
-// let x = new Feature('myfeature', [1,2,3,4,5,6]); 
-// console.log(x.shift(2).extend([1,2,3]));
