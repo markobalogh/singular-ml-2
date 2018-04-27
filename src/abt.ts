@@ -3,6 +3,7 @@ import {Feature} from './feature';
 import * as filesystem from 'fs';
 
 export class ABT {
+    features:Feature[] = [];
     /**
      * Creates a new ABT instance. You can initialize the ABT with data using this constructor or you can call `new ABT().from*****()`.
      * 
@@ -12,7 +13,6 @@ export class ABT {
      * - **array of objects**
      * - **object of arrays**
      */
-    features:Feature[] = [];
     constructor(private initData?:any) {
         if (typeof initData == 'string') {
             this.fromFile(initData);
@@ -103,7 +103,7 @@ export class ABT {
 
 
     /**
-     * Convenience property that allows you to access features in the ABT with `ABT._features.featureName` syntax, but **does not allow you to change any properties of the features**.
+     * Convenience property that allows you to access features in the ABT with `ABT._features.featureName` syntax, but **does not allow you to change any properties of the features**. UPDATE: apparently you actually can change properties of features this way.
      */
     get _features():{[index:string]:Feature} {
         let returnedObj:{[index:string]:Feature} = {};

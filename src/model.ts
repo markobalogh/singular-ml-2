@@ -14,7 +14,7 @@ export abstract class Model {
      */
     abstract query(instance?:Instance):Prediction
     
-    abstract parameters:Parameter[];
+    // abstract parameters:Parameter[]; //deemed not necessary at this time since it is easy enough to iterate through class properties and check if they are parameters or not.
 
     /**
      * Calls `query` with `instance`, replacing any `NaN`s in `instance` with a value from `sweepRange` each time. Returns an array of the query responses.

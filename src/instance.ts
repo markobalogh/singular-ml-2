@@ -5,22 +5,19 @@ export class Instance {
     }
 
     /**
-     * Normalizes the instance with respect to the given normalization. If no normalization is provided, the one found at `instance.normalization` is used. If no normalization is found there, an error is thrown.
+     * Normalizes the instance with respect to the given normalization. If the instance is already normalized (e.g. by instance.normalization), it is denormalized and renormalized with the new normalization.
      * 
      * Returns the normalized instance for chaining.
      */
-    normalize(normalization?:Normalization):Instance {
-        if (normalization) {
-            this.normalization = normalization;
+    normalize(normalization:Normalization):Instance {
+        if (this.normalization) {
+            this.denormalize();
         }
-        if (this.normalization == undefined) {
-            throw new Error('No normalization is defined for this instance.');
-        } else {
-            this.values = this.values.map((value)=>{
-                return (<Normalization>this.normalization).normalize(value);
-            })
-            return this;
-        }
+        this.normalization = normalization;
+        this.values = this.values.map((value)=>{
+            return (<Normalization>this.normalization).normalize(value);
+        })
+        return this;
     }
 
     /**
