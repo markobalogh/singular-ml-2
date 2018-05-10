@@ -1,22 +1,26 @@
 import { Instance } from './instance';
 import { LoDashExplicitNumberArrayWrapper } from 'lodash';
-export abstract class DistanceWeighting {
+export class DistanceWeighting {
+    constructor() {}
     /**
      * Returns the weight corresponding to the given distance.
      */
-    static apply(...args:any[]):number {
-        return NaN
-    }
+    apply:any
 }
 
-export class GeneralizedGaussianDistanceWeighting extends DistanceWeighting{
-    constructor() {
-        super();
-    }
-    static apply(distance:number, sigma:number, exponent:number):number {
-        return Math.exp(-1 * Math.pow(distance, exponent) / Math.pow(sigma, exponent));
-    }
+export var GeneralizedGaussianDistanceWeighting = new DistanceWeighting();
+GeneralizedGaussianDistanceWeighting.apply = function(distance:number, sigma:number, exponent:number){
+    return Math.exp(-1 * Math.pow(distance, exponent) / Math.pow(sigma, exponent));
 }
+
+// export class GeneralizedGaussianDistanceWeighting extends DistanceWeighting{
+//     constructor() {
+//         super();
+//     }
+//     static apply(distance:number, sigma:number, exponent:number):number {
+//         return Math.exp(-1 * Math.pow(distance, exponent) / Math.pow(sigma, exponent));
+//     }
+// }
 
 export class ConstantDistanceWeighting extends DistanceWeighting {
     constructor() {

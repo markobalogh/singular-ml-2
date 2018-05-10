@@ -12,7 +12,7 @@ export class DistanceMetric {
 }
 
 export var EuclideanDistanceMetric = new DistanceMetric();
-euclideanDistanceMetric.evaluate = function(instanceA:Instance, instanceB:Instance, featureWeights?:number[]):number {
+EuclideanDistanceMetric.evaluate = function(instanceA:Instance, instanceB:Instance, featureWeights?:number[]):number {
     if (featureWeights) {
         return Math.sqrt(mean(instanceA.values.map((value, index)=>Math.pow((instanceA.values[index] - instanceB.values[index]), 2)), featureWeights));
     } else {
