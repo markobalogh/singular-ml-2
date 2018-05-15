@@ -113,6 +113,13 @@ export class ABT {
         return returnedObj;
     }
 
+    keepFeatures(featureNames:string[]):ABT {
+        featureNames.forEach((featureName => {
+            delete this.features[this.features.findIndex(feature=>feature.name == featureName)];
+        }))
+        return this;
+    }
+
 }
 
 // let x = new ABT();
