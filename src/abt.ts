@@ -1,6 +1,8 @@
 import * as utilities from './utilities';
 import {Feature} from './feature';
 import * as filesystem from 'fs';
+import { deepCopy } from './utilities';
+import { Instance } from './instance';
 
 export class ABT {
     features:Feature[] = [];
@@ -113,11 +115,53 @@ export class ABT {
         return returnedObj;
     }
 
+    /**
+     * Deletes any features whose name is not listed in `featureNames`. Returns the new ABT for chaining.
+     */
     keepFeatures(featureNames:string[]):ABT {
-        featureNames.forEach((featureName => {
-            delete this.features[this.features.findIndex(feature=>feature.name == featureName)];
-        }))
+        this.features.forEach(feature=>{
+            if (!featureNames.includes(feature.name)) {
+                this.removeFeature(feature.name);
+            }
+        })
         return this;
+    }
+
+    /**
+     * Removes the feature with name `featureName` from the ABT. Returns the new ABT for chaining.
+     */
+    removeFeature(featureName:string):ABT {
+        delete this.features[this.features.findIndex(feature=>feature.name==featureName)];
+        return this;
+    }
+
+    /**
+     * Duplicates the feature with name `featureName`
+     */
+    duplicateFeature(featureName:string, newFeatureName:string=featureName+'-copy', pushToEnd:boolean=false):ABT {
+        let newFeature = deepCopy(this._features.featureName);
+        newFeature.name = newFeatureName;
+        if (pushToEnd) {
+            this.features.push(newFeature);
+        } else {
+            this.features = this.features.slice(0, this.features.findIndex(feature=>feature.name == featureName)).concat(newFeature, ...this.features.slice(this.features.findIndex(feature=>feature.name == featureName)));
+            //check if this is correct!
+        }
+        return this;
+    }
+
+    getInstance(index:number):Instance {
+        return new Instance(this.features.map(feature=>feature.values[index]), this.features.map(feature=>feature.normalization));
+    }
+
+    /**
+     * Removes any instances that violate the given `condition`. Returns the ABT for chaining.
+     */
+    keepInstances(condition:(instance:Instance)=>boolean):ABT {
+        let newABT = deepCopy(this);
+        for (let index in newABT.features) {
+            newABT.features[index].values = this.features[index].values.filter(value=>condition(value));
+        }
     }
 
 }
