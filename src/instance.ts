@@ -1,7 +1,7 @@
 import {Normalization, ZScoreNormalization} from './normalization';
 
 export class Instance {
-    constructor(public values:number[], public normalizations?:Normalization[]) {
+    constructor(public values:number[], public normalizations?:(Normalization|undefined)[]) {
         if (normalizations) {
             if (normalizations.length != values.length) {
                 throw new Error('Instance.normalizations must have the same length as Instance.values.');
