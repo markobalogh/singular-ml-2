@@ -51,3 +51,46 @@ export function mean(collection:number[], weights?:number[]):number {
         return _.mean(collection);
     }
 }
+
+/**
+ * Note: this is not as efficient as a synchronous map when the number of items is large. When the number of items is very small it can be equally efficient.
+ */
+export async function asyncMap<inputType, outputType>(items:inputType[], map:(input:inputType)=>outputType):Promise<outputType[]> {
+    let promises = items.map(function(value) {
+        return new Promise<outputType>((resolve,reject)=>{
+            try {
+                resolve(map(value));
+            } catch (error) {
+                reject(error);
+            }
+        });
+    })
+    return Promise.all(promises);
+}
+
+export function logExecutionTime(enabled:boolean, workload:()=>any):void {
+    if (enabled) {
+        let startTime = new Date().getTime();
+        workload();
+        let endTime = new Date().getTime();
+        console.log(`Execution time: ${endTime-startTime} milliseconds.`);
+    } else {
+        workload();
+    }
+}
+
+let workload = function(x:number) {
+    let y = x
+    for (let i=0;i<10000000*x;i++) {
+        y += i;
+    }
+    return y;
+}
+// logExecutionTime(true, ()=>{
+//     let y = _.range(1,10);
+//     y.map(value=>workload(value));
+// })
+logExecutionTime(true, ()=>{
+    let y = _.range(1,10);
+    asyncMap(y, workload);
+})
