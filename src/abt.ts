@@ -1,11 +1,13 @@
 import * as utilities from './utilities';
 import {Feature} from './feature';
 import * as filesystem from 'fs';
+import { Instance } from './instance';
 
 export class ABT {
     features:Feature[] = [];
+    
     /**
-     * Creates a new ABT instance. You can initialize the ABT with data using this constructor or you can call `new ABT().from*****()`.
+     * Creates a new ABT instance. To initialize the ABT with data you can call `new ABT().from*****()`.
      * 
      * Supported initData types:
      * - **string** (assumed to be a filename - .abt and .json will be interpreted as json, .csv and .txt will be interpreted as comma-separated values)
@@ -13,10 +15,8 @@ export class ABT {
      * - **array of objects**
      * - **object of arrays**
      */
-    constructor(private initData?:any) {
-        if (typeof initData == 'string') {
-            this.fromFile(initData);
-        }
+    constructor() {
+        
     }
 
     ///////////////////////////////// I/O //////////////////////////////////
@@ -113,9 +113,44 @@ export class ABT {
         return returnedObj;
     }
 
+    //Facilitates use of "for instance of ABT"
+    [Symbol.iterator]() {
+        let index = 0;
+        let features = this.features;
+        return {next: function():IteratorResult<Instance> {
+            if (index < features[0].values.length) {
+                return {
+                    done: false,
+                    value: new Instance(features.map(feature=>feature.values[index++]));
+                }
+            } else {
+                return {
+                    done: true,
+                    value: new Instance([])
+                }
+            }
+        }};
+    }
+
+
+    // /**
+    //  * Returns a copy of the ABT which contains only the instances 
+    //  */
+    // slice(start:number, end?:number):ABT {
+
+    // }
+
+    // peek():void {
+        
+    // }
+
 }
 
-// let x = new ABT();
-// x.features = [new Feature('hello', [1,2,3])];
-// x._features.hello.name = 'yo';
-// console.log(x.features[0].name);
+/**
+ * An ABT with additional behavior that makes it convenient for use in quantitative finance.
+ */
+export class FinancialABT extends ABT {
+    constructor() {
+        super();
+    }
+}
