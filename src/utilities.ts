@@ -13,8 +13,11 @@ export function lastElementOf<someType>(array:someType[]):someType {
     return array[array.length - 1];
 }
 
+/**
+ * Instance methods will be copied but static/class methods will not be.
+ */
 export function deepCopy<someType>(obj:someType):someType {
-    let returnObj:someType = JSON.parse(JSON.stringify(obj));
+    let returnObj:someType = Object.assign( Object.create( Object.getPrototypeOf(obj)), obj);
     return returnObj
 }
 
@@ -78,19 +81,3 @@ export function logExecutionTime(enabled:boolean, workload:()=>any):void {
         workload();
     }
 }
-
-let workload = function(x:number) {
-    let y = x
-    for (let i=0;i<10000000*x;i++) {
-        y += i;
-    }
-    return y;
-}
-// logExecutionTime(true, ()=>{
-//     let y = _.range(1,10);
-//     y.map(value=>workload(value));
-// })
-logExecutionTime(true, ()=>{
-    let y = _.range(1,10);
-    asyncMap(y, workload);
-})

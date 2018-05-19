@@ -1,8 +1,10 @@
 import {Plotter} from './Plotter';
 import * as utilities from './utilities';
+import { Normalization } from './normalization';
 var plotter = new Plotter();
 
 export class Feature{
+    normalization?:Normalization
     /**
      * Creates an instance of Feature. 
      * If `allowNonNumeric` is true, values will not be converted to type `number` when the feature is constructed.

@@ -9,12 +9,6 @@ export class ABT {
     
     /**
      * Creates a new ABT instance. To initialize the ABT with data you can call `new ABT().from*****()`.
-     * 
-     * Supported initData types:
-     * - **string** (assumed to be a filename - .abt and .json will be interpreted as json, .csv and .txt will be interpreted as comma-separated values)
-     * - **nested array** 
-     * - **array of objects**
-     * - **object of arrays**
      */
     constructor() {
         
@@ -133,17 +127,6 @@ export class ABT {
         }};
     }
 
-
-    // /**
-    //  * Returns a copy of the ABT which contains only the instances 
-    //  */
-    // slice(start:number, end?:number):ABT {
-
-    // }
-
-    // peek():void {
-        
-    // }
     /**
      * Deletes any features whose name is not listed in `featureNames`. Returns the new ABT for chaining.
      */
@@ -191,6 +174,7 @@ export class ABT {
         for (let index in newABT.features) {
             newABT.features[index].values = this.features[index].values.filter(value=>condition(value));
         }
+        return Object.assign(this, newABT);
     }
 
 }
