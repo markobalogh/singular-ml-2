@@ -1,17 +1,11 @@
 import { Feature } from './feature';
+import { Instance } from './instance';
 export declare class ABT {
-    private initData;
     features: Feature[];
     /**
-     * Creates a new ABT instance. You can initialize the ABT with data using this constructor or you can call `new ABT().from*****()`.
-     *
-     * Supported initData types:
-     * - **string** (assumed to be a filename - .abt and .json will be interpreted as json, .csv and .txt will be interpreted as comma-separated values)
-     * - **nested array**
-     * - **array of objects**
-     * - **object of arrays**
+     * Creates a new ABT instance. To initialize the ABT with data you can call `new ABT().from*****()`.
      */
-    constructor(initData?: any);
+    constructor();
     fromNestedArray(data: any[][]): ABT;
     fromObjectOfArrays(data: {
         [index: string]: any[];
@@ -27,4 +21,43 @@ export declare class ABT {
     readonly _features: {
         [index: string]: Feature;
     };
+    [Symbol.iterator](): {
+        next: () => IteratorResult<Instance>;
+    };
+    /**
+     * The number of instances stored in this ABT. It is assumed that all features have the same length.
+     */
+    readonly length: number;
+    /**
+     * Deletes any features whose name is not listed in `featureNames`. Returns the new ABT for chaining.
+     */
+    keepFeatures(featureNames: string[]): ABT;
+    /**
+     * Removes the feature with name `featureName` from the ABT. Returns the new ABT for chaining.
+     */
+    removeFeature(featureName: string): ABT;
+    /**
+     * Duplicates the feature with name `featureName`
+     */
+    duplicateFeature(featureName: string, newFeatureName?: string, pushToEnd?: boolean): ABT;
+    getInstance(index: number): Instance;
+    /**
+     * Pushes instance onto this ABT. Forces the instance to take on the same normalization as the ABT. Throws an error if the instance is incompatible with this ABT.
+     *
+     */
+    pushInstance(instance: Instance): ABT;
+    /**
+     * Removes any instances that violate the given `condition`. Returns the ABT for chaining.
+     */
+    keepInstances(condition: (instance: Instance) => boolean): ABT;
+    /**
+     * Removes any instances which contain `NaN`.
+     */
+    removeNaNs(): ABT;
+}
+/**
+ * An ABT with additional behavior that makes it convenient for use in quantitative finance.
+ */
+export declare class FinancialABT extends ABT {
+    constructor();
 }

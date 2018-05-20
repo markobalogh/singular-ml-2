@@ -5,7 +5,6 @@ import { Normalization } from './normalization';
  */
 export declare class Prediction extends Instance {
     values: number[];
-    normalization: Normalization | undefined;
-    confidence: number[] | undefined;
-    constructor(values: number[], normalization?: Normalization | undefined, confidence?: number[] | undefined);
+    normalizations: Normalization[] | undefined;
+    constructor(instance: Instance, confidence?: number[]);
 }

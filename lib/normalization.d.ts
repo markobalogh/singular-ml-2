@@ -9,3 +9,8 @@ export declare class ZScoreNormalization extends Normalization {
     normalize(value: number): number;
     denormalize(value: number): number;
 }
+/**
+ * A normalizer is an algorithm that generates a `Normalization` from a set of data.
+ */
+export declare type Normalizer = (data: number[]) => Normalization;
+export declare var ZScoreNormalizer: Normalizer;

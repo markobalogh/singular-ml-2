@@ -1,7 +1,7 @@
 import * as utilities from './utilities';
 import {Feature} from './feature';
 import * as filesystem from 'fs';
-import { deepCopy } from './utilities';
+import { deepCopy, unique, range } from './utilities';
 import { Instance } from './instance';
 
 export class ABT {
@@ -116,7 +116,7 @@ export class ABT {
             if (index < features[0].values.length) {
                 return {
                     done: false,
-                    value: new Instance(features.map(feature=>feature.values[index++]));
+                    value: new Instance(features.map(feature=>feature.values[index++]))
                 }
             } else {
                 return {
@@ -125,6 +125,17 @@ export class ABT {
                 }
             }
         }};
+    }
+
+    /**
+     * The number of instances stored in this ABT. It is assumed that all features have the same length.
+     */
+    get length():number {
+        if (unique(this.features.map(feature=>feature.values.length)).length != 1) {
+            throw new Error('ABT cannot contain features of different length. If the value of a feature at some instance is not available, use `NaN` instead.');
+        } else {
+            return this.features[0].values.length;
+        }
     }
 
     /**
@@ -167,14 +178,43 @@ export class ABT {
     }
 
     /**
+     * Pushes instance onto this ABT. Forces the instance to take on the same normalization as the ABT. Throws an error if the instance is incompatible with this ABT.
+     * 
+     */
+    pushInstance(instance:Instance):ABT {
+        if (instance.values.length != this.features.length) {
+            throw new Error('Instance incompatible with ABT - the number of values in the instance must match the number of features in the ABT.');
+        } else {
+            //push instance, making sure normalizations match
+            for (let index in instance.values) {
+                instance.normalize(this.features.map(feature=>feature.normalization));
+                this.features[index].push(instance.values[index]);
+            }
+        }
+        return this;
+    }
+
+    /**
      * Removes any instances that violate the given `condition`. Returns the ABT for chaining.
      */
     keepInstances(condition:(instance:Instance)=>boolean):ABT {
         let newABT = deepCopy(this);
-        for (let index in newABT.features) {
-            newABT.features[index].values = this.features[index].values.filter(value=>condition(value));
+        newABT.features.forEach(feature=>feature.values = []);
+        for (let index of range(this.length)) {
+            let thisInstance = this.getInstance(index);
+            if (condition(thisInstance)) {
+                newABT.pushInstance(thisInstance);
+            }
         }
-        return Object.assign(this, newABT);
+        this.features = newABT.features;
+        return this;
+    }
+
+    /**
+     * Removes any instances which contain `NaN`.
+     */
+    removeNaNs():ABT {
+        return this.keepInstances(instance=>!instance.values.includes(NaN));
     }
 
 }

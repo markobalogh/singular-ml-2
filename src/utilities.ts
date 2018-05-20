@@ -81,3 +81,11 @@ export function logExecutionTime(enabled:boolean, workload:()=>any):void {
         workload();
     }
 }
+
+export function unique<someType>(array:ArrayLike<someType>):someType[] {
+    return _.uniq(array);
+}
+
+export function range(length:number):number[] {
+    return _.range(0, length);
+}

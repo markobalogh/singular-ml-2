@@ -1,7 +1,10 @@
 import {Normalization, ZScoreNormalization} from './normalization';
 
 export class Instance {
-    constructor(public values:number[], public normalizations?:(Normalization|undefined)[]) {
+    /**
+     * Creates a new Instance. If `normalizations` is not provided, all the normalizations will be `undefined`, indicating that the values have not been normalized.
+     */
+    constructor(public values:number[], public normalizations:(Normalization|undefined)[]=values.map(value=>undefined)) {
         if (normalizations) {
             if (normalizations.length != values.length) {
                 throw new Error('Instance.normalizations must have the same length as Instance.values.');
@@ -14,13 +17,18 @@ export class Instance {
      * 
      * Returns the normalized instance for chaining.
      */
-    normalize(normalizations:Normalization[]):Instance {
+    normalize(normalizations:(Normalization|undefined)[]):Instance {
         if (this.normalizations) {
             this.denormalize();
         }
         this.normalizations = normalizations;
         this.values = this.values.map((value,index)=>{
-            return (<Normalization[]>this.normalizations)[index].normalize(value);
+            if (this.normalizations[index]) {
+                return (<Normalization[]>this.normalizations)[index].normalize(value);
+            } else {
+                //new normalization is undefined for this index, so dont apply any transformation.
+                return value;
+            }
         })
         return this;
     }
@@ -37,7 +45,7 @@ export class Instance {
             this.values = this.values.map((value,index)=>{
                 return (<Normalization[]>this.normalizations)[index].denormalize(value);
             });
-            this.normalizations = undefined; //clear the old normalization since the instance is now denormalized.
+            this.normalizations.forEach(normalization=>normalization = undefined); //clear the old normalization since the instance is now denormalized.
             return this;
         }
     }
@@ -49,7 +57,8 @@ export class Instance {
         return this.values.findIndex(value=>isNaN(value));
     }
 
-    fillMissingFeatureValue(value:number) {
+    fillMissingFeatureValue(value:number):Instance {
         this.values[this.getMissingFeatureIndex()] = value;
+        return this;
     }
 }
