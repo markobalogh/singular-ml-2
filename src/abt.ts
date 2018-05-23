@@ -16,7 +16,7 @@ export class ABT {
 
     ///////////////////////////////// I/O //////////////////////////////////
 
-    fromNestedArray(data:any[][]):ABT {
+    fromNestedArray(data:any[][]) {
         //Determine which axis is the instance axis and which is the feature axis.
         if (data.length >= data[0].length) {
             //assume that the first index indexes instances
@@ -35,7 +35,7 @@ export class ABT {
         return this;
     }
 
-    fromObjectOfArrays(data:{[index:string]:any[]}):ABT {
+    fromObjectOfArrays(data:{[index:string]:any[]}) {
         this.features = [];
         for (let featureName in data) {
             this.features.push(new Feature(featureName, data[featureName]));
@@ -43,7 +43,7 @@ export class ABT {
         return this;
     }
 
-    fromArrayOfObjects(data:{[index:string]:any}[]):ABT {
+    fromArrayOfObjects(data:{[index:string]:any}[]) {
         this.features = [];
         for (let featureName in data[0]) {
             this.features.push(new Feature(featureName, data.map((value)=>{return value[featureName]})));
@@ -51,7 +51,7 @@ export class ABT {
         return this;
     }
     
-    fromFile(filename:string):ABT {
+    fromFile(filename:string) {
         if (filename.endsWith('.abt') || filename.endsWith('.json')) {
             Object.assign(this, JSON.parse(filesystem.readFileSync(filename).toString()));
         } else if (filename.endsWith('.csv') || filename.endsWith('.txt')) {
@@ -89,7 +89,7 @@ export class ABT {
         return this;
     }
 
-    save(filename:string='untitled.abt'):ABT {
+    save(filename:string='untitled.abt') {
         filesystem.writeFileSync(filename, JSON.stringify(this));
         return this;
     }
@@ -141,7 +141,7 @@ export class ABT {
     /**
      * Deletes any features whose name is not listed in `featureNames`. Returns the new ABT for chaining.
      */
-    keepFeatures(featureNames:string[]):ABT {
+    keepFeatures(...featureNames:string[]) {
         this.features.forEach(feature=>{
             if (!featureNames.includes(feature.name)) {
                 this.removeFeature(feature.name);
@@ -153,7 +153,7 @@ export class ABT {
     /**
      * Removes the feature with name `featureName` from the ABT. Returns the new ABT for chaining.
      */
-    removeFeature(featureName:string):ABT {
+    removeFeature(featureName:string) {
         delete this.features[this.features.findIndex(feature=>feature.name==featureName)];
         return this;
     }
@@ -161,7 +161,7 @@ export class ABT {
     /**
      * Duplicates the feature with name `featureName` and pushed the feature to the end of `ABT.features` unless `pushToEnd` is false.
      */
-    duplicateFeature(featureName:string, newFeatureName:string=featureName+'-copy', pushToEnd:boolean=true):ABT {
+    duplicateFeature(featureName:string, newFeatureName:string=featureName+'-copy', pushToEnd:boolean=true) {
         let newFeature = deepCopy(this._features.featureName);
         newFeature.name = newFeatureName;
         if (pushToEnd) {
@@ -181,7 +181,7 @@ export class ABT {
      * Pushes instance onto this ABT. Forces the instance to take on the same normalization as the ABT. Throws an error if the instance is incompatible with this ABT.
      * 
      */
-    pushInstance(instance:Instance):ABT {
+    pushInstance(instance:Instance) {
         if (instance.values.length != this.features.length) {
             throw new Error('Instance incompatible with ABT - the number of values in the instance must match the number of features in the ABT.');
         } else {
@@ -197,7 +197,7 @@ export class ABT {
     /**
      * Removes any instances that violate the given `condition`. Returns the ABT for chaining.
      */
-    keepInstances(condition:(instance:Instance)=>boolean):ABT {
+    keepInstances(condition:(instance:Instance)=>boolean) {
         let newABT = deepCopy(this);
         newABT.features.forEach(feature=>feature.values = []);
         for (let index of range(this.length)) {
@@ -213,24 +213,15 @@ export class ABT {
     /**
      * Removes any instances which contain `NaN`.
      */
-    removeNaNs():ABT {
+    removeNaNs() {
         return this.keepInstances(instance=>!instance.values.includes(NaN));
     }
 
+    /**
+     * Use this property only for debugging purposes or iterating through all instances. If you know which instance you need, call ABT.getInstance() because this property dynamically regenerates the entire array of instances for each call.
+     */
     get instances():Instance[] {
         return range(this.length).map(value=>this.getInstance(value));
     }
-
-    // get peek():string {
-    //     //calculate how long the widest row in the table would be.
-    //     let tablewidth = Math.max(this.)
-    //     let printstring = '| ';
-    //     printstring += this.features.map(feature=>feature.name).join(' | ');
-    //     printstring += ' |';
-    //     console.log(printstring);
-    //     for (let index of range(this.length)) {
-    //         print 
-    //     }
-    // }
 
 }
