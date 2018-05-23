@@ -45,7 +45,7 @@ export class Feature{
     }
 
     /**
-     * Moves the indexes associated with each value in the given Feature up or down by the given shift. Positive shift values create NaNs at the beginning of Feature.values. Fills missing values that result from the shift with NaNs. Feature length is kept constant.
+     * Moves the indexes associated with each value in the given Feature up or down by the given shift. Feature length is kept constant. Fills missing values that result from the shift with NaNs. Positive shift values create `NaN`s at the beginning of Feature.values, while negative shift values create `NaN`s at the end.
      */
     shift(shiftAmount:number):Feature {
         if (shiftAmount > 0) {

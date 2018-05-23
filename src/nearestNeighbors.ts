@@ -53,14 +53,14 @@ export class NearestNeighbors extends TemplateMatchingModel {
     public zeroDistanceHandling:ZeroDistanceHandling;
     public normalizations:Normalization[]|undefined;
 
-    constructor(public templates:Instance[], distanceWeighting:DistanceWeighting=GeneralizedGaussianDistanceWeighting, featureWeighting:boolean=false, distanceMetric:DistanceMetric=EuclideanDistanceMetric, zeroDistanceHandling:ZeroDistanceHandling, normalization?:Normalization) {
+    constructor(public templates:Instance[], distanceWeighting:DistanceWeighting=GeneralizedGaussianDistanceWeighting, featureWeighting:boolean=false, distanceMetric:DistanceMetric=EuclideanDistanceMetric, zeroDistanceHandling:ZeroDistanceHandling, normalizations?:Normalization[]) {
         super();
         //handle different parameter initializations based on the behaviors specified in the constructor.
         this.distanceWeighting = distanceWeighting;
         this.featureWeighting = featureWeighting;
         this.distanceMetric = distanceMetric;
         this.zeroDistanceHandling = zeroDistanceHandling;
-        this.normalization = normalization;
+        this.normalizations = normalizations;
         switch (this.distanceWeighting) {
             case GeneralizedGaussianDistanceWeighting:
                 this.sigma = new Parameter(1, false, ...this.calculateSigmaBounds());
@@ -120,37 +120,40 @@ export class NearestNeighbors extends TemplateMatchingModel {
         return this.templates.map(otherInstance => this.distanceMetric.evaluate(instance, otherInstance));
     }
 
-    private vote(distances:number[], queryInstance:Instance):Prediction {
-        let distancesAndVotes = distances.map((value,index)=>{
-            return {distance:distances[index], template:this.templates[index]}
-        }).sort((a,b)=>a.distance - b.distance);
-        if (this.k.value) {
-            distancesAndVotes = distancesAndVotes.slice(0, this.k.value);
-        }
-        distances = distancesAndVotes.map(value=>value.distance);
-        let votes = distancesAndVotes.map(value=>value.template);
-        //check if any neighboring instance is a distance of zero away from the query instance.
-        if (distances.includes(0)) {
-            if (this.zeroDistanceHandling == ZeroDistanceHandling.continue) {
-                //do nothing
-            } else if (this.zeroDistanceHandling == ZeroDistanceHandling.return) {
-                return new Prediction(new Instance(votes[distances.findIndex(distance=>distance == 0)];
-            } else if (this.zeroDistanceHandling == ZeroDistanceHandling.remove) {
-                votes = votes.filter((value,index)=>distances[index] != 0);
-                distances = distances.filter(distance=>distance != 0);
-            }
-        }
-        //weigh the votes by distance
-        let weights = distances.map(distance=>this.distanceWeighting.apply(distance));
-        //check if the closest instance got a weight of zero.
-        if (weights[0] == 0) {
-            //in that case, we return the instance exactly as we got it, because we can't provide any predictive value.
-            return new Prediction(queryInstance);
-        }
+    // private vote(distances:number[], queryInstance:Instance):Prediction {
+    //     let distancesAndVotes = distances.map((value,index)=>{
+    //         return {distance:distances[index], template:this.templates[index]}
+    //     }).sort((a,b)=>a.distance - b.distance);
+    //     if (this.k.value) {
+    //         distancesAndVotes = distancesAndVotes.slice(0, this.k.value);
+    //     }
+    //     distances = distancesAndVotes.map(value=>value.distance);
+    //     let votes = distancesAndVotes.map(value=>value.template);
+    //     //check if any neighboring instance is a distance of zero away from the query instance.
+    //     if (distances.includes(0)) {
+    //         if (this.zeroDistanceHandling == ZeroDistanceHandling.continue) {
+    //             //do nothing
+    //         } else if (this.zeroDistanceHandling == ZeroDistanceHandling.return) {
+    //             return new Prediction(new Instance(votes[distances.findIndex(distance=>distance == 0)];
+    //         } else if (this.zeroDistanceHandling == ZeroDistanceHandling.remove) {
+    //             votes = votes.filter((value,index)=>distances[index] != 0);
+    //             distances = distances.filter(distance=>distance != 0);
+    //         }
+    //     }
+    //     //weigh the votes by distance
+    //     let weights = distances.map(distance=>this.distanceWeighting.apply(distance));
+    //     //check if the closest instance got a weight of zero.
+    //     if (weights[0] == 0) {
+    //         //in that case, we return the instance exactly as we got it, because we can't provide any predictive value.
+    //         return new Prediction(queryInstance);
+    //     }
 
-    }
+    // }
 
-    public query(instance?:Instance):Prediction {
-        return this.vote(this.)
+    // public query(instance?:Instance):Prediction {
+    //     return this.vote(this.)
+    // }
+    query(instance?:Instance):Prediction {
+        return new Prediction(new Instance([]));
     }
 }

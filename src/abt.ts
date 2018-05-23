@@ -159,9 +159,9 @@ export class ABT {
     }
 
     /**
-     * Duplicates the feature with name `featureName`
+     * Duplicates the feature with name `featureName` and pushed the feature to the end of `ABT.features` unless `pushToEnd` is false.
      */
-    duplicateFeature(featureName:string, newFeatureName:string=featureName+'-copy', pushToEnd:boolean=false):ABT {
+    duplicateFeature(featureName:string, newFeatureName:string=featureName+'-copy', pushToEnd:boolean=true):ABT {
         let newFeature = deepCopy(this._features.featureName);
         newFeature.name = newFeatureName;
         if (pushToEnd) {

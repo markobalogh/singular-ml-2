@@ -46,12 +46,11 @@ export declare class NearestNeighbors extends TemplateMatchingModel {
     distanceMetric: DistanceMetric;
     zeroDistanceHandling: ZeroDistanceHandling;
     normalizations: Normalization[] | undefined;
-    constructor(templates: Instance[], distanceWeighting: DistanceWeighting | undefined, featureWeighting: boolean | undefined, distanceMetric: DistanceMetric | undefined, zeroDistanceHandling: ZeroDistanceHandling, normalization?: Normalization);
+    constructor(templates: Instance[], distanceWeighting: DistanceWeighting | undefined, featureWeighting: boolean | undefined, distanceMetric: DistanceMetric | undefined, zeroDistanceHandling: ZeroDistanceHandling, normalizations?: Normalization[]);
     /**
      * Finds a reasonable lower and upper bound for searching for an optimal sigma value. Choose a random subset of the template list and calculates the lower and upper bound by finding the 1st and 99th percentiles of the distance between any two instances in this subset.
      */
     private calculateSigmaBounds();
     private measureDistances(instance);
-    private vote(distances, queryInstance);
     query(instance?: Instance): Prediction;
 }

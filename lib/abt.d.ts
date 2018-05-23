@@ -37,7 +37,7 @@ export declare class ABT {
      */
     removeFeature(featureName: string): ABT;
     /**
-     * Duplicates the feature with name `featureName`
+     * Duplicates the feature with name `featureName` and pushed the feature to the end of `ABT.features` unless `pushToEnd` is false.
      */
     duplicateFeature(featureName: string, newFeatureName?: string, pushToEnd?: boolean): ABT;
     getInstance(index: number): Instance;
