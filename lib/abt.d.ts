@@ -54,10 +54,5 @@ export declare class ABT {
      * Removes any instances which contain `NaN`.
      */
     removeNaNs(): ABT;
-}
-/**
- * An ABT with additional behavior that makes it convenient for use in quantitative finance.
- */
-export declare class FinancialABT extends ABT {
-    constructor();
+    readonly instances: Instance[];
 }

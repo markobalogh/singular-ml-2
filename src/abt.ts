@@ -217,13 +217,20 @@ export class ABT {
         return this.keepInstances(instance=>!instance.values.includes(NaN));
     }
 
-}
-
-/**
- * An ABT with additional behavior that makes it convenient for use in quantitative finance.
- */
-export class FinancialABT extends ABT {
-    constructor() {
-        super();
+    get instances():Instance[] {
+        return range(this.length).map(value=>this.getInstance(value));
     }
+
+    // get peek():string {
+    //     //calculate how long the widest row in the table would be.
+    //     let tablewidth = Math.max(this.)
+    //     let printstring = '| ';
+    //     printstring += this.features.map(feature=>feature.name).join(' | ');
+    //     printstring += ' |';
+    //     console.log(printstring);
+    //     for (let index of range(this.length)) {
+    //         print 
+    //     }
+    // }
+
 }
