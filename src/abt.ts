@@ -108,6 +108,10 @@ export class ABT {
         return returnedObj;
     }
 
+    featureByName(featureName:string):Feature {
+        return this.features[this.features.findIndex(feature=>feature.name==featureName)];
+    }
+
     //Facilitates use of "for instance of ABT"
     [Symbol.iterator]() {
         let index = 0;
@@ -162,7 +166,7 @@ export class ABT {
      * Duplicates the feature with name `featureName` and pushed the feature to the end of `ABT.features` unless `pushToEnd` is false.
      */
     duplicateFeature(featureName:string, newFeatureName:string=featureName+'-copy', pushToEnd:boolean=true) {
-        let newFeature = deepCopy(this._features.featureName);
+        let newFeature = deepCopy(this._features[featureName]);
         newFeature.name = newFeatureName;
         if (pushToEnd) {
             this.features.push(newFeature);

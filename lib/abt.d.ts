@@ -21,6 +21,7 @@ export declare class ABT {
     readonly _features: {
         [index: string]: Feature;
     };
+    featureByName(featureName: string): Feature;
     [Symbol.iterator](): {
         next: () => IteratorResult<Instance>;
     };
