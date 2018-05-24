@@ -154,7 +154,7 @@ export class ABT {
      * Removes the feature with name `featureName` from the ABT. Returns the new ABT for chaining.
      */
     removeFeature(featureName:string) {
-        delete this.features[this.features.findIndex(feature=>feature.name==featureName)];
+        this.features.splice(this.features.findIndex(feature=>feature.name==featureName), 1);
         return this;
     }
 
