@@ -17,7 +17,7 @@ export function lastElementOf<someType>(array:someType[]):someType {
  * Instance methods will be copied but static/class methods will not be.
  */
 export function deepCopy<someType>(obj:someType):someType {
-    let returnObj:someType = Object.assign( Object.create( Object.getPrototypeOf(obj)), obj);
+    let returnObj:someType = Object.assign( Object.create( Object.getPrototypeOf(obj)), JSON.parse(JSON.stringify(obj)));
     return returnObj
 }
 
