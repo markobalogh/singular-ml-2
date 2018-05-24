@@ -15,6 +15,7 @@ export declare class ABT {
     }[]): this;
     fromFile(filename: string): this;
     save(filename?: string): this;
+    exportAsCSV(filename?: string): this;
     /**
      * Convenience property that allows you to access features in the ABT with `ABT._features.featureName` syntax, but **does not allow you to change any properties of the features**. UPDATE: apparently you actually can change properties of features this way.
      */

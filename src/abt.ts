@@ -94,6 +94,15 @@ export class ABT {
         return this;
     }
 
+    exportAsCSV(filename:string='untitled.csv') {
+        let writestring = this.features.map(feature=>feature.name).join(', ') + '\n';
+        for (let instance of this.instances) {
+            writestring += instance.values.join(', ') + '\n';
+        }
+        filesystem.writeFileSync(filename, writestring);
+        return this;
+    }
+
     ////////////////////////// CORE FUNCTIONALITY ////////////////////////////
 
 
