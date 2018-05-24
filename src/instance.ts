@@ -34,20 +34,20 @@ export class Instance {
     }
 
     /**
-     * Denormalizes the instance with respect to its normalizations. If the instance's normalizations are undefined, an error is thrown.
+     * Denormalizes the instance with respect to its normalizations. Does nothing for undefined normalizations.
      * 
      * Returns the normalized instance for chaining.
      */
     denormalize():Instance {
-        if (this.normalizations == undefined) {
-            throw new Error('No normalizations are defined for this instance.');
-        } else {
-            this.values = this.values.map((value,index)=>{
+        this.values = this.values.map((value,index)=>{
+            if (this.normalizations[index]) {
                 return (<Normalization[]>this.normalizations)[index].denormalize(value);
-            });
-            this.normalizations.forEach(normalization=>normalization = undefined); //clear the old normalization since the instance is now denormalized.
-            return this;
-        }
+            } else {
+                return value;
+            }
+        });
+        this.normalizations.forEach(normalization=>normalization = undefined); //clear the old normalization since the instance is now denormalized.
+        return this;
     }
 
     /**

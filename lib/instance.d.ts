@@ -13,7 +13,7 @@ export declare class Instance {
      */
     normalize(normalizations: (Normalization | undefined)[]): Instance;
     /**
-     * Denormalizes the instance with respect to its normalizations. If the instance's normalizations are undefined, an error is thrown.
+     * Denormalizes the instance with respect to its normalizations. Does nothing for undefined normalizations.
      *
      * Returns the normalized instance for chaining.
      */
