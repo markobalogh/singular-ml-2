@@ -3,7 +3,7 @@ export declare function lastElementOf<someType>(array: someType[]): someType;
 /**
  * Instance methods will be copied but static/class methods will not be. Instance properties that are themselves class instances will be copied as objects (their methods will not be copied). Hence to copy those you'll need help from some static `fromObj` method (that's the API typically implemented by this library when necessary).
  */
-export declare function flatCopy<someType>(obj: someType): someType;
+export declare function flatCopy<someType>(obj: someType | undefined): someType | undefined;
 export declare function randomSample<someType>(collection: someType[], numberOfSamples: number): someType[];
 /**
  * Returns a percentile of the given `collection`, where `percentile` is a decimal between 0 and 1. Interpolates between elements of the collection unless `interpolate` is false.
