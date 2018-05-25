@@ -21,26 +21,26 @@ export abstract class Model {
      * 
      * If `instance` is empty, 100 samples from the model are generated and returned.
      */
-    querySweep(instance?:Instance, sweepRange?:number[]):Prediction[] {
-        let returnArray:Prediction[] = [];
-        if (instance) {
-            if (sweepRange) {
-                returnArray = sweepRange.map((value)=>{
-                    let newInstance = utilities.deepCopy(instance);
-                    newInstance.values.forEach((instanceValue,index)=>{
-                        if (isNaN(instanceValue)) {
-                            instance.values[index] = value;
-                        }
-                    });
-                    return this.query(newInstance);
-                });
-            }
-        } else {
-            //just return sweepRange.length samples
-            for (let i=0;i<100;i++) {
-                returnArray.push(this.query());
-            }
-        }
-        return returnArray;
-    }
+    // querySweep(instance?:Instance, sweepRange?:number[]):Prediction[] {
+    //     let returnArray:Prediction[] = [];
+    //     if (instance) {
+    //         if (sweepRange) {
+    //             returnArray = sweepRange.map((value)=>{
+    //                 let newInstance = utilities.deepCopy(instance);
+    //                 newInstance.values.forEach((instanceValue,index)=>{
+    //                     if (isNaN(instanceValue)) {
+    //                         instance.values[index] = value;
+    //                     }
+    //                 });
+    //                 return this.query(newInstance);
+    //             });
+    //         }
+    //     } else {
+    //         //just return sweepRange.length samples
+    //         for (let i=0;i<100;i++) {
+    //             returnArray.push(this.query());
+    //         }
+    //     }
+    //     return returnArray;
+    // }
 }

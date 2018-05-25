@@ -14,9 +14,9 @@ export function lastElementOf<someType>(array:someType[]):someType {
 }
 
 /**
- * Instance methods will be copied but static/class methods will not be.
+ * Instance methods will be copied but static/class methods will not be. Instance properties that are themselves class instances will be copied as objects (their methods will not be copied). Hence to copy those you'll need help from some static `fromObj` method (that's the API typically implemented by this library when necessary).
  */
-export function deepCopy<someType>(obj:someType):someType {
+export function flatCopy<someType>(obj:someType):someType {
     let returnObj:someType = Object.assign( Object.create( Object.getPrototypeOf(obj)), JSON.parse(JSON.stringify(obj)));
     return returnObj
 }
@@ -29,7 +29,7 @@ export function randomSample<someType>(collection:someType[], numberOfSamples:nu
  * Returns a percentile of the given `collection`, where `percentile` is a decimal between 0 and 1. Interpolates between elements of the collection unless `interpolate` is false.
  */
 export function percentile(collection:number[], percentile:number, interpolate=true) {
-    let sortedCollection = deepCopy(collection.sort((a,b)=>{return a-b}));
+    let sortedCollection = flatCopy(collection.sort((a,b)=>{return a-b}));
     if (interpolate) {
         let lowerIndex = Math.floor(sortedCollection.length * percentile);
         let upperIndex = Math.ceil(sortedCollection.length * percentile);

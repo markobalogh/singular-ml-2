@@ -1,4 +1,5 @@
 import {Normalization, ZScoreNormalization} from './normalization';
+import { flatCopy } from './utilities';
 
 export class Instance {
     /**
@@ -10,6 +11,13 @@ export class Instance {
                 throw new Error('Instance.normalizations must have the same length as Instance.values.');
             }
         }
+    }
+
+    static fromObj(obj:any):Instance {
+        let newinstance = new Instance([]);
+        newinstance = Object.assign(newinstance, obj);
+        newinstance.normalizations = obj.normalizations.map((value:any)=>flatCopy(value));
+        return newinstance
     }
 
     /**

@@ -6,6 +6,7 @@ export declare class ABT {
      * Creates a new ABT instance. To initialize the ABT with data you can call `new ABT().from*****()`.
      */
     constructor();
+    static fromObj(obj: any): ABT;
     fromNestedArray(data: any[][]): this;
     fromObjectOfArrays(data: {
         [index: string]: any[];

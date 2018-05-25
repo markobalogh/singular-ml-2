@@ -6,7 +6,7 @@ import { Normalization } from './normalization';
  */
 export class Prediction extends Instance{
     values:number[];
-    normalizations:Normalization[]|undefined;
+    normalizations:(Normalization|undefined)[];
     constructor(instance:Instance, confidence?:number[]) {
         super(instance.values, instance.normalizations);
         this.values = instance.values;

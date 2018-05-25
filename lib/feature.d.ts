@@ -8,6 +8,7 @@ export declare class Feature {
      * @memberof Feature
      */
     constructor(name: string, values?: number[]);
+    static fromObj(obj: any): Feature;
     getValue(index: number): number;
     setValue(index: number, newValue: number): Feature;
     getSlice(startIndex: number, endIndex: number): number[];

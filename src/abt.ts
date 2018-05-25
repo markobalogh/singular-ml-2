@@ -1,7 +1,7 @@
 import * as utilities from './utilities';
 import {Feature} from './feature';
 import * as filesystem from 'fs';
-import { deepCopy, unique, range } from './utilities';
+import { flatCopy, unique, range } from './utilities';
 import { Instance } from './instance';
 
 export class ABT {
@@ -12,6 +12,13 @@ export class ABT {
      */
     constructor() {
         
+    }
+
+    static fromObj(obj:any):ABT {
+        let newABT = new ABT();
+        newABT = Object.assign(newABT, obj);
+        newABT.features = obj.features.map((featureobj:any)=>Feature.fromObj(featureobj));
+        return newABT;
     }
 
     ///////////////////////////////// I/O //////////////////////////////////
@@ -175,7 +182,7 @@ export class ABT {
      * Duplicates the feature with name `featureName` and pushed the feature to the end of `ABT.features` unless `pushToEnd` is false.
      */
     duplicateFeature(featureName:string, newFeatureName:string=featureName+'-copy', pushToEnd:boolean=true) {
-        let newFeature = deepCopy(this._features[featureName]);
+        let newFeature = flatCopy(this._features[featureName]);
         newFeature.name = newFeatureName;
         if (pushToEnd) {
             this.features.push(newFeature);
@@ -211,7 +218,7 @@ export class ABT {
      * Removes any instances that violate the given `condition`. Returns the ABT for chaining.
      */
     keepInstances(condition:(instance:Instance)=>boolean) {
-        let newABT = deepCopy(this);
+        let newABT = flatCopy(this);
         newABT.features.forEach(feature=>feature.values = []);
         for (let index of range(this.length)) {
             let thisInstance = this.getInstance(index);

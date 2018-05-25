@@ -13,6 +13,13 @@ export class Feature{
 
     }
 
+    static fromObj(obj:any):Feature {
+        let newfeature = new Feature('', []);
+        newfeature = Object.assign(newfeature, obj);
+        newfeature.normalization = Object.assign(Object.create(obj.normalization), obj.normalization);
+        return newfeature;
+    }
+
     getValue(index:number):number {
         return this.values[index];
     }
