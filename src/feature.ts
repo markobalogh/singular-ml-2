@@ -17,7 +17,11 @@ export class Feature{
     static fromObj(obj:any):Feature {
         let newfeature = new Feature('', []);
         newfeature = Object.assign(newfeature, obj);
-        newfeature.normalization = flatCopy(obj.normalization);
+        if (obj.normalization) {
+            newfeature.normalization = flatCopy(obj.normalization);
+        } else {
+            newfeature.normalization = undefined;
+        }
         return newfeature;
     }
 

@@ -206,9 +206,9 @@ export class ABT {
             throw new Error('Instance incompatible with ABT - the number of values in the instance must match the number of features in the ABT.');
         } else {
             //push instance, making sure normalizations match
-            for (let index in instance.values) {
+            for (let i=0;i<instance.values.length;i++) {
                 instance.normalize(this.features.map(feature=>feature.normalization));
-                this.features[index].push(instance.values[index]);
+                this.features[i].push(instance.values[i]);
             }
         }
         return this;
@@ -218,7 +218,7 @@ export class ABT {
      * Removes any instances that violate the given `condition`. Returns the ABT for chaining.
      */
     keepInstances(condition:(instance:Instance)=>boolean) {
-        let newABT = flatCopy(this);
+        let newABT = ABT.fromObj(flatCopy(this));
         newABT.features.forEach(feature=>feature.values = []);
         for (let index of range(this.length)) {
             let thisInstance = this.getInstance(index);

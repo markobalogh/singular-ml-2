@@ -16,13 +16,9 @@ export function lastElementOf<someType>(array:someType[]):someType {
 /**
  * Instance methods will be copied but static/class methods will not be. Instance properties that are themselves class instances will be copied as objects (their methods will not be copied). Hence to copy those you'll need help from some static `fromObj` method (that's the API typically implemented by this library when necessary).
  */
-export function flatCopy<someType>(obj:someType|undefined):someType|undefined {
-    if (!obj) {
-        return undefined
-    } else {
-        let returnObj:someType = Object.assign( Object.create( Object.getPrototypeOf(obj)), JSON.parse(JSON.stringify(obj)));
-        return returnObj
-    }
+export function flatCopy<someType>(obj:someType):someType {
+    let returnObj:someType = Object.assign( Object.create( Object.getPrototypeOf(obj)), JSON.parse(JSON.stringify(obj)));
+    return returnObj
 }
 
 export function randomSample<someType>(collection:someType[], numberOfSamples:number):someType[] {
