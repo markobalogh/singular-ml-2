@@ -1,6 +1,7 @@
 import {Plotter} from './Plotter';
 import * as utilities from './utilities';
 import { Normalization, Normalizer } from './normalization';
+import { flatCopy } from './utilities';
 var plotter = new Plotter();
 
 export class Feature{
@@ -16,7 +17,7 @@ export class Feature{
     static fromObj(obj:any):Feature {
         let newfeature = new Feature('', []);
         newfeature = Object.assign(newfeature, obj);
-        newfeature.normalization = Object.assign(Object.create(obj.normalization), obj.normalization);
+        newfeature.normalization = flatCopy(obj.normalization);
         return newfeature;
     }
 
