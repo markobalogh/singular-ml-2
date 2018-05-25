@@ -31,7 +31,7 @@ export declare class NearestNeighbors extends TemplateMatchingModel {
     /**
      * Each parameter in this list represents the weight of the corresponding feature during effective distance calculations. The featureWeights are passed to `NearestNeighbors.distanceMetric.evaluate()` when `NearestNeighbors.featureWeighting` == `true`
      */
-    featureWeights: Parameter[];
+    featureWeights: Parameter[] | undefined;
     /**
      * Determines the weight given to each instance in NearestNeighbors.templates as a function of their distance from the query instance.
      */
@@ -45,12 +45,13 @@ export declare class NearestNeighbors extends TemplateMatchingModel {
      */
     distanceMetric: DistanceMetric;
     zeroDistanceHandling: ZeroDistanceHandling;
-    normalizations: Normalization[] | undefined;
-    constructor(templates: Instance[], distanceWeighting: DistanceWeighting | undefined, featureWeighting: boolean | undefined, distanceMetric: DistanceMetric | undefined, zeroDistanceHandling: ZeroDistanceHandling, normalizations?: Normalization[]);
+    normalizations: (Normalization | undefined)[];
+    constructor(templates: Instance[], distanceWeighting: DistanceWeighting | undefined, featureWeighting: boolean | undefined, distanceMetric: DistanceMetric | undefined, zeroDistanceHandling: ZeroDistanceHandling, normalizations?: (Normalization | undefined)[]);
     /**
      * Finds a reasonable lower and upper bound for searching for an optimal sigma value. Choose a random subset of the template list and calculates the lower and upper bound by finding the 1st and 99th percentiles of the distance between any two instances in this subset.
      */
     private calculateSigmaBounds();
-    private measureDistances(instance);
-    query(instance?: Instance): Prediction;
+    private measureDistances(queryInstance);
+    private vote(distances, queryInstance);
+    query(instance: Instance): Prediction;
 }
