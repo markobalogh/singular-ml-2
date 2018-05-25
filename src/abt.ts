@@ -182,7 +182,7 @@ export class ABT {
      * Duplicates the feature with name `featureName` and pushed the feature to the end of `ABT.features` unless `pushToEnd` is false.
      */
     duplicateFeature(featureName:string, newFeatureName:string=featureName+'-copy', pushToEnd:boolean=true) {
-        let newFeature = flatCopy(this._features[featureName]);
+        let newFeature = Feature.fromObj(flatCopy(this._features[featureName]));
         newFeature.name = newFeatureName;
         if (pushToEnd) {
             this.features.push(newFeature);
