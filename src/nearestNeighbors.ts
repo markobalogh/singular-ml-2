@@ -157,7 +157,7 @@ export class NearestNeighbors extends TemplateMatchingModel {
         }
 
     }
-
+    
     query(instance:Instance):Prediction {
         return this.vote(this.measureDistances(instance), instance);
     }
