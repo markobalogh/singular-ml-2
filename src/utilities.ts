@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import crypto = require('crypto');
 
 export function stdev(values:number[], subtractOneFromDenominator:boolean=true):number {
     let mean = _.mean(values);
@@ -89,3 +90,10 @@ export function unique<someType>(array:ArrayLike<someType>):someType[] {
 export function range(length:number):number[] {
     return _.range(0, length);
 }
+
+// /**
+//  * Returns a thread-safe random number between zero and 1.
+//  */
+// export function safeRandom():number {
+//     return _.sum(crypto.randomBytes(100))
+// }
