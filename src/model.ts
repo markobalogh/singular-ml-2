@@ -4,11 +4,12 @@ import {Instance} from './instance';
 import {Prediction} from './prediction';
 import {Parameter} from './parameter';
 import * as filesystem from 'fs';
+import { Optimizable } from './optimizer';
 
 /**
  * Docs not written yet.
  */
-export abstract class Model {
+export abstract class Model implements Optimizable{
     /**
      * An instance might not be provided in the case of a generative model.
      */
