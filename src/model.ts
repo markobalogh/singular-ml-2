@@ -5,15 +5,23 @@ import {Prediction} from './prediction';
 import {Parameter} from './parameter';
 import * as filesystem from 'fs';
 import { Optimizable } from './optimizer';
+import { ABT } from '.';
+import { ScoringFunction } from './scoringFunction';
 
 /**
  * Docs not written yet.
  */
-export abstract class Model implements Optimizable{
+export abstract class Model {
     /**
      * An instance might not be provided in the case of a generative model.
      */
     abstract query(instance?:Instance):Prediction
+
+    abstract scoringFunction:ScoringFunction;
+
+    test(testSet:ABT):number {
+
+    }
     
     // abstract parameters:Parameter[]; //deemed not necessary at this time since it is easy enough to iterate through class properties and check if they are parameters or not.
 

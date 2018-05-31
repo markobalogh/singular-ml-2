@@ -5,12 +5,13 @@ import { Normalization } from './normalization';
 import { DistanceWeighting } from './distanceWeighting';
 import { DistanceMetric } from './distanceMetric';
 import { Prediction } from './prediction';
+import { Optimizable } from './optimizer';
 export declare enum ZeroDistanceHandling {
     continue = 0,
     remove = 1,
     return = 2,
 }
-export declare class NearestNeighbors extends TemplateMatchingModel {
+export declare class NearestNeighbors extends TemplateMatchingModel implements Optimizable {
     templates: Instance[];
     /**
      * **k** in the traditional sense of k-nearest neighbors. Only the `k` nearest instances are allowed to vote when this model is queried. If `NaN` then all instances are given voting rights.
@@ -46,6 +47,7 @@ export declare class NearestNeighbors extends TemplateMatchingModel {
     distanceMetric: DistanceMetric;
     zeroDistanceHandling: ZeroDistanceHandling;
     normalizations: (Normalization | undefined)[];
+    readonly parameters: Parameter[];
     constructor(templates: Instance[], distanceWeighting: DistanceWeighting | undefined, featureWeighting: boolean | undefined, distanceMetric: DistanceMetric | undefined, zeroDistanceHandling: ZeroDistanceHandling, normalizations?: (Normalization | undefined)[]);
     /**
      * Finds a reasonable lower and upper bound for searching for an optimal sigma value. Choose a random subset of the template list and calculates the lower and upper bound by finding the 1st and 99th percentiles of the distance between any two instances in this subset.

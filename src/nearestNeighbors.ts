@@ -8,6 +8,7 @@ import { DistanceMetric, EuclideanDistanceMetric } from './distanceMetric';
 import {randomSample, percentile, mean} from './utilities';
 import {sum} from 'lodash';
 import { Prediction } from './prediction';
+import { Optimizable } from './optimizer';
 
 export enum ZeroDistanceHandling {
     continue,
@@ -17,7 +18,7 @@ export enum ZeroDistanceHandling {
 
 // NOTE: follow the pattern shown for DistanceMetric and EuclideanDistanceMetric for the DistanceWeighting class. This patterns allows the class method to be called correctly. I tested this in test.ts
 
-export class NearestNeighbors extends TemplateMatchingModel {
+export class NearestNeighbors extends TemplateMatchingModel implements Optimizable {
     /**
      * **k** in the traditional sense of k-nearest neighbors. Only the `k` nearest instances are allowed to vote when this model is queried. If `NaN` then all instances are given voting rights.
      * 
@@ -52,6 +53,10 @@ export class NearestNeighbors extends TemplateMatchingModel {
     public distanceMetric:DistanceMetric;
     public zeroDistanceHandling:ZeroDistanceHandling;
     public normalizations:(Normalization|undefined)[];
+    
+    get parameters():Parameter[] {
+
+    }
 
     constructor(public templates:Instance[], distanceWeighting:DistanceWeighting=GeneralizedGaussianDistanceWeighting, featureWeighting:boolean=false, distanceMetric:DistanceMetric=EuclideanDistanceMetric, zeroDistanceHandling:ZeroDistanceHandling, normalizations?:(Normalization|undefined)[]) {
         super();
@@ -157,7 +162,7 @@ export class NearestNeighbors extends TemplateMatchingModel {
         }
 
     }
-    
+
     query(instance:Instance):Prediction {
         return this.vote(this.measureDistances(instance), instance);
     }
