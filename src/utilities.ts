@@ -91,6 +91,10 @@ export function range(length:number):number[] {
     return _.range(0, length);
 }
 
+export function shuffle<T>(collection:T[]):T[] {
+    return _.shuffle(collection);
+}
+
 // /**
 //  * Returns a thread-safe random number between zero and 1.
 //  */

@@ -17,3 +17,4 @@ export declare function asyncMap<inputType, outputType>(items: inputType[], map:
 export declare function logExecutionTime(enabled: boolean, workload: () => any): void;
 export declare function unique<someType>(array: ArrayLike<someType>): someType[];
 export declare function range(length: number): number[];
+export declare function shuffle<T>(collection: T[]): T[];

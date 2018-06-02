@@ -6,7 +6,11 @@ import { Instance } from './instance';
 
 export class ABT {
     features:Feature[] = [];
-    
+    /**
+     * Indicates how instances in the ABT are contaminated with information from other instances. If 0, there is no contamination. If 1, then instance n+1 is contaminated with information from instance n. If -1, then instance n-1 is contaminated with information from instance n. This offset is used to ensure that trainingSet/testSet partitions are information-safe.
+     */
+    informationContaminationOffset:number=0;
+
     /**
      * Creates a new ABT instance. To initialize the ABT with data you can call `new ABT().from*****()`.
      */
@@ -19,6 +23,16 @@ export class ABT {
         newABT = Object.assign(newABT, obj);
         newABT.features = obj.features.map((featureobj:any)=>Feature.fromObj(featureobj));
         return newABT;
+    }
+
+    /**
+     * Returns a *new* ABT that is an exact copy of `this`.
+     */
+    copy():this {
+        let newObj:this = Object.getPrototypeOf(this).constructor();
+        newObj = Object.assign(newObj, this);
+        newObj.features = this.features.map((featureobj:any)=>Feature.fromObj(featureobj));
+        return newObj;
     }
 
     ///////////////////////////////// I/O //////////////////////////////////
@@ -217,12 +231,12 @@ export class ABT {
     /**
      * Removes any instances that violate the given `condition`. Returns the ABT for chaining.
      */
-    keepInstances(condition:(instance:Instance)=>boolean) {
+    keepInstances(condition:(instance:Instance, index:number)=>boolean) {
         let newABT = ABT.fromObj(flatCopy(this));
         newABT.features.forEach(feature=>feature.values = []);
-        for (let index of range(this.length)) {
-            let thisInstance = this.getInstance(index);
-            if (condition(thisInstance)) {
+        for (let _index of range(this.length)) {
+            let thisInstance = this.getInstance(_index);
+            if (condition(thisInstance, _index)) {
                 newABT.pushInstance(thisInstance);
             }
         }
@@ -243,5 +257,45 @@ export class ABT {
     get instances():Instance[] {
         return range(this.length).map(value=>this.getInstance(value));
     }
+
+    /**
+     * Get multiple instances.
+     */
+    getInstances(indices:number[]):Instance[] {
+        return indices.map(value=>this.getInstance(value));
+    }
+
+    /**
+     * Returns a *new* copy of this ABT which contains only the instances at the given indices.
+     */
+    getSubset(indices:number[]):this {
+        return <this>this.partition((instance,index)=>indices.includes(index)).get(true);
+    }
+
+    /**
+     * Returns a consecutive subset of `this` from `startIndex` up to but not including `endIndex`. The default `startIndex` is 0 and the default `endIndex` is `this.length`.
+     */
+    getSlice(startIndex:number=0, endIndex:number=this.length):this {
+        return <this>this.partition((instance, index)=>(index>=startIndex && index < endIndex)).get(true);
+    }
+
+    /**
+     * Let's see if we can make this function return an object that is indexed by the values returned by `condition`. I think a plain JS object can't do it because indices have to be numbers or strings. Maybe a map?
+     */
+    partition<T>(condition:(instance:Instance,index:number)=>T):Map<T,this> {
+        let returnMap = new Map<T,this>();
+        for (let i of range(this.length)) {
+            let conditionOutput = condition(this.getInstance(i), i);
+            if (!returnMap.has(conditionOutput)) {
+                //create a new ABT with all the same properties as this one but with no instances.
+                returnMap.set(conditionOutput, this.copy().keepInstances(()=>false));
+            } 
+            //append this instance to that ABT.
+            (<this>returnMap.get(conditionOutput)).pushInstance(this.getInstance(i));
+        }
+        return returnMap;
+    }
+
+    //Add a method here that can split the ABT into a training set and a test set. The method will return lists of indices - the ABT can make sure there's no information contamination in the way that the training and test set were split, and then whatever is calling this method can store the training and testing indices for its purposes.
 
 }
