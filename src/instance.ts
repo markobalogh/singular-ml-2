@@ -2,10 +2,17 @@ import {Normalization, ZScoreNormalization} from './normalization';
 import { flatCopy } from './utilities';
 
 export class Instance {
+
+    /**
+     * The indices at which `this.values` contains target feature values. An instance does not have to have any target feature values (e.g. in the case of generative modeling).
+     */
+    targetIndices:number[] = [];
+
     /**
      * Creates a new Instance. If `normalizations` is not provided, all the normalizations will be `undefined`, indicating that the values have not been normalized.
      */
-    constructor(public values:number[], public normalizations:(Normalization|undefined)[]=values.map(value=>undefined)) {
+    constructor(public values:number[], public normalizations:(Normalization|undefined)[]=values.map(value=>undefined), targetIndices:number[]=[]) {
+        this.targetIndices = targetIndices;
         if (normalizations) {
             if (normalizations.length != values.length) {
                 throw new Error('Instance.normalizations must have the same length as Instance.values.');
@@ -67,6 +74,22 @@ export class Instance {
 
     fillMissingFeatureValue(value:number):Instance {
         this.values[this.getMissingFeatureIndex()] = value;
+        return this;
+    }
+
+    get targetValues():number[] {
+        return this.values.filter((value,index)=>this.targetIndices.includes(index));
+    }
+
+    /**
+     * Removes target values, replacing them with `NaN`s. This is useful when creating a query instance from a test set that, naturally, already has target values in each instance.
+     */
+    removeTargetValues():this {
+        this.values.forEach((value, index)=>{
+            if (this.targetIndices.includes(index)) {
+                this.values[index] = NaN;
+            }
+        });
         return this;
     }
 }

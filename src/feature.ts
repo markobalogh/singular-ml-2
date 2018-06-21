@@ -7,6 +7,10 @@ var plotter = new Plotter();
 export class Feature{
     normalization?:Normalization
     /**
+     * Indicates whether this feature should be considered a target feature - this property naturally lies with the feature so that it remains true if features are shuffled or transformed. False by default.
+     */
+    isTarget:boolean=false;
+    /**
      * Creates an instance of Feature. 
      * @memberof Feature
      */

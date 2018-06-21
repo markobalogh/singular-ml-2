@@ -13,14 +13,16 @@ import { ScoringFunction } from './scoringFunction';
  */
 export abstract class Model {
     /**
-     * An instance might not be provided in the case of a generative model.
+     * The convention is that query instances have `NaN` values for any target indices, and do not necessarily have target indices identified (instance.targetIndices may be an empty array).
+     * 
+     * An instance might not be provided in the case of a generative model, or, if an instance is provided to a generative model, the returned value is the likelihood of the query instance under the generative model.
      */
     abstract query(instance?:Instance):Prediction
 
-    abstract scoringFunction:ScoringFunction;
-
-    test(testSet:ABT):number {
-
+    test(testSet:Instance[]):Prediction[] {
+        return testSet.map((instance)=>{
+            return this.query(instance.removeTargetValues());
+        });
     }
     
     // abstract parameters:Parameter[]; //deemed not necessary at this time since it is easy enough to iterate through class properties and check if they are parameters or not.

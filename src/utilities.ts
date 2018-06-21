@@ -95,6 +95,16 @@ export function shuffle<T>(collection:T[]):T[] {
     return _.shuffle(collection);
 }
 
+export function filterUndefined<T>(collection:(T|undefined)[]):T[] {
+    return <T[]>collection.filter((value)=>{
+        if (typeof value == 'undefined') {
+            return false;
+        } else {
+            return true;
+        }
+    });
+}
+
 // /**
 //  * Returns a thread-safe random number between zero and 1.
 //  */

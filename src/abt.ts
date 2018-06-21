@@ -11,6 +11,16 @@ export class ABT {
      */
     informationContaminationOffset:number=0;
 
+    get targetIndices():number[] {
+        let indexarray:number[] = [];
+        this.features.forEach((feature, index)=>{
+            if (feature.isTarget) {
+                indexarray.push(index);
+            }
+        })
+        return indexarray;
+    }
+
     /**
      * Creates a new ABT instance. To initialize the ABT with data you can call `new ABT().from*****()`.
      */
@@ -273,14 +283,14 @@ export class ABT {
     }
 
     /**
-     * Returns a consecutive subset of `this` from `startIndex` up to but not including `endIndex`. The default `startIndex` is 0 and the default `endIndex` is `this.length`.
+     * Returns a copy of `this` containing a consecutive subset of instances from `startIndex` up to but not including `endIndex`. The default `startIndex` is 0 and the default `endIndex` is `this.length`.
      */
     getSlice(startIndex:number=0, endIndex:number=this.length):this {
         return <this>this.partition((instance, index)=>(index>=startIndex && index < endIndex)).get(true);
     }
 
     /**
-     * Let's see if we can make this function return an object that is indexed by the values returned by `condition`. I think a plain JS object can't do it because indices have to be numbers or strings. Maybe a map?
+     * Returns a `Map` from values returned by `condition` when called on the instances of this ABT to *new* ABTs, each of which holds the subset of instances for which `condition` returns each value, respectively.
      */
     partition<T>(condition:(instance:Instance,index:number)=>T):Map<T,this> {
         let returnMap = new Map<T,this>();
@@ -297,5 +307,7 @@ export class ABT {
     }
 
     //Add a method here that can split the ABT into a training set and a test set. The method will return lists of indices - the ABT can make sure there's no information contamination in the way that the training and test set were split, and then whatever is calling this method can store the training and testing indices for its purposes.
+
+
 
 }

@@ -3,6 +3,10 @@ export declare class Instance {
     values: number[];
     normalizations: (Normalization | undefined)[];
     /**
+     * The indices at which `this.values` contains target feature values. An instance does not have to have any target feature values (e.g. in the case of generative modeling).
+     */
+    targetIndices: number[];
+    /**
      * Creates a new Instance. If `normalizations` is not provided, all the normalizations will be `undefined`, indicating that the values have not been normalized.
      */
     constructor(values: number[], normalizations?: (Normalization | undefined)[]);
@@ -24,4 +28,5 @@ export declare class Instance {
      */
     getMissingFeatureIndex(): number;
     fillMissingFeatureValue(value: number): Instance;
+    readonly targetValues: number[];
 }

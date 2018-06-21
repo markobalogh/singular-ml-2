@@ -3,31 +3,39 @@ import { Model } from './model';
 import { Optimizable } from "./optimizer";
 import { Parameter } from "./parameter";
 import { range, shuffle } from "./utilities";
+import { Instance } from "./instance";
+import { Prediction } from "./prediction";
+import { CrossValidatedMAE } from './scoringFunction';
 
-export abstract class LearningAlgorithm implements Optimizable {
+export abstract class LearningAlgorithm {
     //learning algorithms are algorithms for going from a set of instances (the training set) to a Model.
-    //It's tricky to figure out what the relationship between models & learning algorithms are for template based models...
+    //It's tricky to figure out what the relationship between models & learning algorithms is for template based models...
     //Nearest neighbors may be best thought of as a learning algorithm whose objective is an aggregate of the scores of the models it outputs as it iterates through a cross-validation meta-dataset. Really what we want to score is the performance of nearest neighbors, as a function of the parameters of the nearest neighbors models, as we iterate over (trainingSet, testSet) pairs provided by a cross validation routine.
     //So, should learningAlgorithms be required to act as a mapping from a dataset to a model?
     //This would help clarify model scoring vs learning algorithm scoring (in which learning algorithm scoring would involve aggregating model scoring). Cross validation 
 
-    abstract learnFrom(trainingSet:ABT):Model;
+    abstract learnFrom(trainingSet:Instance[]):Model;
 
     abstract parameters:Parameter[];
 
-    abstract objective:()=>number;
 
-    holdOutCV(dataSet:ABT, testSplit:number=0.3, randomizeTestSet:boolean=true, parallel:boolean=false):number {
+
+    holdOutCV(dataset:ABT, testSplit:number=0.3, randomize:boolean=true, parallel:boolean=false):{testSet:Instance[],predictions:Prediction[]} {
         //slice dataset into a test set and training set.
-        let indices = range(dataSet.length);
-        if (randomizeTestSet) {
+        let indices = range(dataset.length);
+        if (randomize) {
             indices = shuffle(indices);
+            if (dataset.informationContaminationOffset != 0) {
+                console.log(`WARNING: Partitioning the dataset into a training set and test set cannot be done safely when the dataset is randomized and has a non-zero information contamination offset.`);
+            }
         }
         let testSetSize = Math.ceil(testSplit * indices.length);
-        //slice dataset into a test set and training set.
-        //then call learnFrom(trainingSet)
-        //then call test() on the output.
-
-        //NOTE: ASK THE ABT TO FIND INDICES FOR TRAINING AND TESTING! IT KNOWS ABOUT THE INFO CONTAMINATION.
+        let trainingSetSize = dataset.length - testSetSize - Math.abs(dataset.informationContaminationOffset);
+        let testSet = dataset.getInstances(indices.slice(0, testSetSize));
+        let trainingSet = dataset.getInstances(indices.slice(testSetSize + Math.abs(dataset.informationContaminationOffset), indices.length));
+        return {
+            testSet: testSet,
+            predictions: this.learnFrom(trainingSet).test(testSet)
+        }
     }
 }
