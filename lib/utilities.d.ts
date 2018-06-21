@@ -18,3 +18,4 @@ export declare function logExecutionTime(enabled: boolean, workload: () => any):
 export declare function unique<someType>(array: ArrayLike<someType>): someType[];
 export declare function range(length: number): number[];
 export declare function shuffle<T>(collection: T[]): T[];
+export declare function filterUndefined<T>(collection: (T | undefined)[]): T[];

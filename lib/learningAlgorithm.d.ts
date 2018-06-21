@@ -1,11 +1,13 @@
 import { ABT } from ".";
 import { Model } from './model';
-import { Optimizable } from "./optimizer";
 import { Parameter } from "./parameter";
 import { Instance } from "./instance";
-export declare abstract class LearningAlgorithm implements Optimizable {
+import { Prediction } from "./prediction";
+export declare abstract class LearningAlgorithm {
     abstract learnFrom(trainingSet: Instance[]): Model;
     abstract parameters: Parameter[];
-    abstract objective: () => number;
-    holdOutCV(dataset: ABT, testSplit?: number, randomize?: boolean, parallel?: boolean): number;
+    holdOutCV(dataset: ABT, testSplit?: number, randomize?: boolean, parallel?: boolean): {
+        testSet: Instance[];
+        predictions: Prediction[];
+    };
 }

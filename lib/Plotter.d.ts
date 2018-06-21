@@ -7,5 +7,5 @@ export declare class Plotter {
      * @memberof Plotter
      */
     plot(...args: any[]): void;
-    private saveData(filepath, data);
+    private saveData;
 }
