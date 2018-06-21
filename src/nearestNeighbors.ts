@@ -18,6 +18,14 @@ export enum ZeroDistanceHandling {
     return
 }
 
+export interface NearestNeighborConfig {
+    distanceWeighting?:DistanceWeighting, 
+    featureWeighting?:boolean, 
+    distanceMetric?:DistanceMetric, 
+    zeroDistanceHandling?:ZeroDistanceHandling, 
+    normalizations?:(Normalization|undefined)[]
+}
+
 export class NearestNeighborsModel extends TemplateMatchingModel {
     /**
      * **k** in the traditional sense of k-nearest neighbors. Only the `k` nearest instances are allowed to vote when this model is queried. If `NaN` then all instances are given voting rights.
@@ -222,7 +230,7 @@ export class NearestNeighbors extends LearningAlgorithm {
         return params as Parameter[];
     }
 
-    constructor(public templates:Instance[], distanceWeighting:DistanceWeighting=GeneralizedGaussianDistanceWeighting, featureWeighting:boolean=false, distanceMetric:DistanceMetric=EuclideanDistanceMetric, zeroDistanceHandling:ZeroDistanceHandling, normalizations?:(Normalization|undefined)[]) {
+    constructor(public templates:Instance[], config:NearestNeighborConfig) {
         super();
         //handle different parameter initializations based on the behaviors specified in the constructor.
         this.distanceWeighting = distanceWeighting;
