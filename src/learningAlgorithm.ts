@@ -5,7 +5,7 @@ import { Parameter } from "./parameter";
 import { range, shuffle } from "./utilities";
 import { Instance } from "./instance";
 import { Prediction } from "./prediction";
-import { CrossValidatedMAE } from './scoringFunction';
+import { CrossValidatedMAE, ScoringFunction } from './scoringFunction';
 
 export abstract class LearningAlgorithm {
     //learning algorithms are algorithms for going from a set of instances (the training set) to a Model.
@@ -20,7 +20,7 @@ export abstract class LearningAlgorithm {
 
 
 
-    holdOutCV(dataset:ABT, testSplit:number=0.3, randomize:boolean=true, parallel:boolean=false):{testSet:Instance[],predictions:Prediction[]} {
+    holdOutTest(dataset:ABT, testSplit:number=0.3, randomize:boolean=true, parallel:boolean=false):TestResults {
         //slice dataset into a test set and training set.
         let indices = range(dataset.length);
         if (randomize) {
@@ -33,9 +33,19 @@ export abstract class LearningAlgorithm {
         let trainingSetSize = dataset.length - testSetSize - Math.abs(dataset.informationContaminationOffset);
         let testSet = dataset.getInstances(indices.slice(0, testSetSize));
         let trainingSet = dataset.getInstances(indices.slice(testSetSize + Math.abs(dataset.informationContaminationOffset), indices.length));
-        return {
-            testSet: testSet,
-            predictions: this.learnFrom(trainingSet).test(testSet)
-        }
+        return new TestResults(testSet, this.learnFrom(trainingSet).test(testSet));
+    }
+}
+
+/**
+ * The TestResults class represents the predictions made by a model and the test set those predictions are to be compared to.
+ */
+export class TestResults {
+    constructor(public testSet:Instance[], public predictions:Prediction[]) {
+
+    }
+
+    scoreWith(scoringFunction:ScoringFunction):number {
+        return scoringFunction(this);
     }
 }

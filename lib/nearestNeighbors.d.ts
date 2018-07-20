@@ -14,10 +14,9 @@ export declare enum ZeroDistanceHandling {
 }
 export interface NearestNeighborConfig {
     distanceWeighting?: DistanceWeighting;
-    featureWeighting?: boolean;
     distanceMetric?: DistanceMetric;
     zeroDistanceHandling?: ZeroDistanceHandling;
-    normalizations?: (Normalization | undefined)[];
+    featureWeights?: Parameter[];
 }
 export declare class NearestNeighborsModel extends TemplateMatchingModel {
     templates: Instance[];
@@ -57,16 +56,11 @@ export declare class NearestNeighborsModel extends TemplateMatchingModel {
     normalizations: (Normalization | undefined)[];
     readonly parameters: Parameter[];
     constructor(templates: Instance[], distanceWeighting: DistanceWeighting | undefined, featureWeighting: boolean | undefined, distanceMetric: DistanceMetric | undefined, zeroDistanceHandling: ZeroDistanceHandling, normalizations?: (Normalization | undefined)[]);
-    /**
-     * Finds a reasonable lower and upper bound for searching for an optimal sigma value. Choose a random subset of the template list and calculates the lower and upper bound by finding the 1st and 99th percentiles of the distance between any two instances in this subset.
-     */
-    private calculateSigmaBounds;
     private measureDistances;
     private vote;
     query(instance: Instance): Prediction;
 }
 export declare class NearestNeighbors extends LearningAlgorithm {
-    templates: Instance[];
     /**
      * **k** in the traditional sense of k-nearest neighbors. Only the `k` nearest instances are allowed to vote when this model is queried. If `NaN` then all instances are given voting rights.
      *
@@ -100,12 +94,11 @@ export declare class NearestNeighbors extends LearningAlgorithm {
      */
     distanceMetric: DistanceMetric;
     zeroDistanceHandling: ZeroDistanceHandling;
-    normalizations: (Normalization | undefined)[];
     readonly parameters: Parameter[];
-    constructor(templates: Instance[], config: NearestNeighborConfig);
+    constructor(config?: NearestNeighborConfig);
     /**
      * Finds a reasonable lower and upper bound for searching for an optimal sigma value. Choose a random subset of the template list and calculates the lower and upper bound by finding the 1st and 99th percentiles of the distance between any two instances in this subset.
      */
-    private calculateSigmaBounds;
+    setReasonableSigmaBounds(templates: Instance[]): number[];
     learnFrom(trainingSet: Instance[]): Model;
 }

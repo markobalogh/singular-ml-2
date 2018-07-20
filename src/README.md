@@ -1,5 +1,16 @@
 # singular-ml-2
 
+Emphasize chaining, pipeline style class members (i.e. the methods of a class often perform some action on the instance and return a different class) so that the entire method chain is readable as a pipeline rather than using f(g(x)) method composition. We prefer passing functions into pipeline arguments rather than using enclosure style function composition. Example:
+`new ABT().fromFile('/test.abt').learnWith(NearestNeighbors).scoreWith(MAE)`
+instead of 
+`MAE(NearestNeighbors(ABT('/test.abt')))`
+
+When possible, use method names to clarify the meaning of arguments, keeping the method chain readable. Example:
+`new NearestNeighbors.withDistanceWeighting(Gaussian).withFeatureWeights([1,1,1,1,1])` vs `new NearestNeighbors(Gaussian, [1,1,1,1,1])`
+
+A consequence of this is that almost all objects passed around will be an instance of a class.
+
+
 # Class Responsibilities
 
 - Feature

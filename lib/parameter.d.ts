@@ -7,4 +7,8 @@ export declare class Parameter {
     lowerBound: number;
     upperBound: number;
     constructor(value: number, fixed?: boolean, lowerBound?: number, upperBound?: number);
+    /**
+     * Returns an array of parameters with the given `values`.
+     */
+    static vector(values: number[], fixed?: boolean, lowerBound?: number, upperBound?: number): Parameter[];
 }
