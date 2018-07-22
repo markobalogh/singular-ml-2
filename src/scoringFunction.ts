@@ -23,10 +23,12 @@ export var RMSE:ScoringFunction = function(testResults) {
 
 export var CrossValidatedMAE:CrossValidationScoringFunction = function(tests:{testSet:Instance[],predictions:Prediction[]}[]):number {
     return mean(tests.map(testObj=>{
-        return MAE(testObj.testSet, testObj.predictions);
+        return MAE(new TestResults(testObj.testSet, testObj.predictions));
     }));
 }
 
 export var CrossValidatedRMSE:CrossValidationScoringFunction = function(tests) {
-    return RMSE(Array.prototype.concat(tests.map(testObj=>testObj.testSet)), Array.prototype.concat(tests.map(testObj=>testObj.predictions)));
+    return RMSE(new TestResults(Array.prototype.concat(tests.map(testObj=>testObj.testSet)), Array.prototype.concat(tests.map(testObj=>testObj.predictions))));
 }
+
+//NOTE: we should redesign how scoring functions and cross validation scoring functions work - in reality, we have scoring functions that map testResults to numbers and then we have a few different ways to aggregate those numbers when cross validation (i.e., multiple tests) needs to be scored.

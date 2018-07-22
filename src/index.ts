@@ -1,6 +1,5 @@
 export * from './abt';
 export * from './distanceMetric';
-export * from './distanceWeighting';
 export * from './feature';
 export * from './financialABT';
 export * from './instance';

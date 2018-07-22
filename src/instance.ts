@@ -1,4 +1,4 @@
-import {Normalization, ZScoreNormalization} from './normalization';
+import { Normalization, ZScoreNormalization, Normalizer } from './normalization';
 import { flatCopy } from './utilities';
 
 export class Instance {

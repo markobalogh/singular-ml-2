@@ -1,4 +1,5 @@
 import {mean, stdev} from './utilities';
+import { Instance } from './instance';
 
 export abstract class Normalization {
     abstract normalize(value:number):number
@@ -35,3 +36,4 @@ export type Normalizer = (data:number[]) => Normalization;
 export var ZScoreNormalizer:Normalizer = function(data:number[]) {
     return new ZScoreNormalization(data);
 }
+

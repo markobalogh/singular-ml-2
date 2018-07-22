@@ -1,9 +1,9 @@
 import { TemplateMatchingModel } from './templateMatchingModel';
 import { Parameter } from './parameter';
 import {Instance} from './instance';
-import { Normalization } from './normalization';
+import { Normalization, ZScoreNormalization } from './normalization';
 import {Feature} from './feature';
-import { DistanceWeighting, GeneralizedGaussianDistanceWeighting, ConstantDistanceWeighting } from './distanceWeighting';
+// import { DistanceWeighting, GeneralizedGaussianDistanceWeighting, ConstantDistanceWeighting } from './distanceWeighting';
 import { DistanceMetric, EuclideanDistanceMetric } from './distanceMetric';
 import {randomSample, percentile, mean, filterUndefined} from './utilities';
 import {sum} from 'lodash';
@@ -13,18 +13,8 @@ import { LearningAlgorithm } from './learningAlgorithm';
 import { Model } from './model';
 import { ABT } from './abt';
 
-export enum ZeroDistanceHandling {
-    continue,
-    remove,
-    return
-}
-
-export interface NearestNeighborConfig {
-    distanceWeighting?:DistanceWeighting,  
-    distanceMetric?:DistanceMetric, 
-    zeroDistanceHandling?:ZeroDistanceHandling, 
-    featureWeights?:Parameter[]
-}
+export type DistanceWeighting = 'generalizedGaussian'|'constant';
+export type ZeroDistanceHandling = 'continue'|'remove'|'return';
 
 export class NearestNeighbors extends LearningAlgorithm {
     /**
@@ -50,12 +40,12 @@ export class NearestNeighbors extends LearningAlgorithm {
     /**
      * Determines the weight given to each instance in NearestNeighbors.templates as a function of their distance from the query instance.
      */
-    public distanceWeighting:DistanceWeighting;
+    public distanceWeighting:DistanceWeighting
     /**
      * Determines how the distance between two instances is calculated.
      */
     public distanceMetric:DistanceMetric;
-    public zeroDistanceHandling:'continue'|'return'|'remove';
+    public zeroDistanceHandling:ZeroDistanceHandling;
 
     get parameters():Parameter[] {
         let params:any[] = [];
@@ -70,13 +60,28 @@ export class NearestNeighbors extends LearningAlgorithm {
     constructor() {
         super();
         //initialize configuration/parameters to default values in the constructor. If the user wants to modify them they can call a .with[config] method.
-        this.distanceWeighting = GeneralizedGaussianDistanceWeighting;
+        this.distanceWeighting = 'generalizedGaussian';
         this.distanceMetric = EuclideanDistanceMetric
         this.zeroDistanceHandling = 'remove';
         this.featureWeights = undefined;
         this.k = new Parameter(NaN);
         this.sigma = new Parameter(NaN);
         this.exponent = new Parameter(NaN);
+    }
+
+    withK(k:number):this {
+        this.k.value = k;
+        return this;
+    }
+
+    withSigma(sigma:number):this {
+        this.sigma.value = sigma;
+        return this;
+    }
+
+    withExponent(exponent:number):this {
+        this.exponent.value = exponent;
+        return this;
     }
 
     withDistanceWeighting(distanceWeighting:DistanceWeighting):this {
@@ -89,8 +94,9 @@ export class NearestNeighbors extends LearningAlgorithm {
         return this;
     }
 
-    withZeroDistanceHandling(zeroDistanceHandling:'continue'|'return'|'remove'):this {
+    withZeroDistanceHandling(zeroDistanceHandling:ZeroDistanceHandling):this {
         this.zeroDistanceHandling = zeroDistanceHandling;
+        return this;
     }
 
     withFeatureWeights(featureWeights:number[]|Parameter[]):this {
@@ -127,17 +133,15 @@ export class NearestNeighbors extends LearningAlgorithm {
     }
 
     learnFrom(trainingSet:Instance[]):Model {
-        return new NearestNeighborsModel(trainingSet, this.distanceWeighting, this.featureWeighting, this.distanceMetric, this.zeroDistanceHandling);
+        return NearestNeighborsModel.from(this, trainingSet);
     }
 
 }
 
 export class NearestNeighborsModel extends TemplateMatchingModel {
-    
+
     static from(learningAlgorithm:NearestNeighbors, templates:Instance[]):NearestNeighborsModel {
-        let model = new NearestNeighborsModel(templates, learningAlgorithm.k, learningAlgorithm.sigma, learningAlgorithm.distanceMetric, learningAlgorithm.featureWeights);
-        model.templates = templates;
-        model
+        return new NearestNeighborsModel(templates, learningAlgorithm.k, learningAlgorithm.sigma, learningAlgorithm.exponent, learningAlgorithm.distanceWeighting, learningAlgorithm.distanceMetric, learningAlgorithm.featureWeights, learningAlgorithm.zeroDistanceHandling);
     }
     
 
@@ -151,14 +155,30 @@ export class NearestNeighborsModel extends TemplateMatchingModel {
         return params as Parameter[];
     }
 
-    constructor(public templates:Instance[], public k:Parameter, public sigma:Parameter, public distanceWeighting:DistanceWeighting, public distanceMetric:DistanceMetric, public featureWeights:Parameter[], public zeroDistanceHandling:ZeroDistanceHandling) {
+    constructor(public templates:Instance[], public k:Parameter, public sigma:Parameter, public exponent:Parameter, public distanceWeighting:DistanceWeighting, public distanceMetric:DistanceMetric, public featureWeights:Parameter[]|undefined, public zeroDistanceHandling:ZeroDistanceHandling) {
         super();
+        //normalize templates
+        // this.normalizations = this.templates[0].values.map((obj, index)=>new ZScoreNormalization(this.templates)
     }
 
     private measureDistances(queryInstance:Instance):number[] {
         return this.templates.map(otherInstance=>{
             return this.distanceMetric.evaluate(queryInstance, otherInstance, this.featureWeights)
         });
+    }
+
+    private applyDistanceWeighting(distance:number):number {
+        switch (this.distanceWeighting) {
+            case 'generalizedGaussian':
+                return Math.exp(-1 * Math.pow(distance, this.exponent.value) / Math.pow(this.sigma.value, this.exponent.value));
+                break;
+            case 'constant':
+                return 1;
+                break;
+            default:
+                return NaN
+                break;
+        }
     }
 
     private vote(distances:number[], queryInstance:Instance):Prediction {
@@ -173,24 +193,25 @@ export class NearestNeighborsModel extends TemplateMatchingModel {
         //check if any neighboring instance is a distance of zero away from the query instance.
         let zeroIndex = distances.findIndex(distance=>distance == 0);
         if (zeroIndex != -1) {
-            if (this.zeroDistanceHandling == ZeroDistanceHandling.continue) {
+            if (this.zeroDistanceHandling == 'continue') {
                 //do nothing
-            } else if (this.zeroDistanceHandling == ZeroDistanceHandling.return) {
+            } else if (this.zeroDistanceHandling == 'return') {
                 return  Prediction.fromInstance(votes[zeroIndex]).setUniformConfidence(Infinity);
-            } else if (this.zeroDistanceHandling == ZeroDistanceHandling.remove) {
+            } else if (this.zeroDistanceHandling == 'remove') {
                 votes = votes.filter((value,index)=>distances[index] != 0);
                 distances = distances.filter(distance=>distance != 0);
             }
         }
         //weigh the votes by distance
-        let weights = distances.map(distance=>this.distanceWeighting.apply(distance));
+        let weights = distances.map(distance=>this.applyDistanceWeighting(distance));
         //check if the closest instance got a weight of zero.
         if (weights[0] == 0) {
             //in that case, we return the instance exactly as we got it, because we can't provide any predictive value.
             return Prediction.fromInstance(queryInstance).setUniformConfidence(0);
         } else {
             //if not, return the weighted average of the votes
-            return new Prediction(votes[0].values.map((value,index)=>mean(votes.map(instance=>instance.values[index]))), this.normalizations, votes[0].values.map((value,index)=>sum(weights.map(weight=>weight[index]))))
+            //the returned prediction is assumed to have the same normalizations as the query instance.
+            return new Prediction(votes[0].values.map((value,index)=>mean(votes.map(instance=>instance.values[index]), weights)), queryInstance.normalizations, votes[0].values.map((value,index)=>sum(weights.map(weight=>weights[index]))))
         }
 
     }
@@ -200,3 +221,4 @@ export class NearestNeighborsModel extends TemplateMatchingModel {
     }
 }
 
+//TODO: change distance weighting to a literal type and build in evaluation of distances into the nearestNeighborsModel class as a private method for each distance weighting. We have to do this because it looks like the only way to provide the k/sigma/exponent parameters to the evaluate method of the distance weighting object.

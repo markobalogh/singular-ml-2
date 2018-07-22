@@ -6,9 +6,11 @@ let x = new FinancialABT().fromFile('./../data/derived/stfReturn/daily/finalABT.
 x.keepFeatures('STF_ActualReturnPerDay');
 x.generateRecursiveFeatures('STF_ActualReturnPerDay', 20);
 x.removeNaNs();
+x.features[0].isTarget = true;
 x.exportAsCSV('unwrappedRecursiveFeatures.csv');
 console.log(x);
 
-let y = new NearestNeighbors();
-let testResults = y.holdOutCV(x, 0.3, true, false);
-console.log(testResults.scoreWith(MAE));
+let y = new NearestNeighbors().withK(10).withSigma(1).withExponent(2).holdOutTest(x, 0.3, true, false).scoreWith(MAE);
+console.log(y);
+// let testResults = y.holdOutCV(x, 0.3, true, false);
+// console.log(testResults.scoreWith(MAE));
