@@ -23,7 +23,8 @@ export declare class ABT {
     fromArrayOfObjects(data: {
         [index: string]: any;
     }[]): this;
-    fromFile(filename: string): this;
+    fromCSVString(csvString: string): this;
+    fromFile(filename: string): this | undefined;
     save(filename?: string): this;
     exportAsCSV(filename?: string): this;
     /**
