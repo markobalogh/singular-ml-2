@@ -204,15 +204,17 @@ export class NearestNeighborsModel extends TemplateMatchingModel {
         }
         //weigh the votes by distance
         let weights = distances.map(distance=>this.applyDistanceWeighting(distance));
+        let returnedPrediction:Prediction;
         //check if the closest instance got a weight of zero.
         if (weights[0] == 0) {
             //in that case, we return the instance exactly as we got it, because we can't provide any predictive value.
-            return Prediction.fromInstance(queryInstance).setUniformConfidence(0);
+            returnedPrediction = Prediction.fromInstance(queryInstance).setUniformConfidence(0);
         } else {
             //if not, return the weighted average of the votes
             //the returned prediction is assumed to have the same normalizations as the query instance.
-            return new Prediction(votes[0].values.map((value,index)=>mean(votes.map(instance=>instance.values[index]), weights)), queryInstance.normalizations, votes[0].values.map((value,index)=>sum(weights.map(weight=>weights[index]))))
+            returnedPrediction = new Prediction(votes[0].values.map((value,index)=>mean(votes.map(instance=>instance.values[index]), weights)), queryInstance.normalizations, votes[0].values.map((value,index)=>sum(weights.map(weight=>weights[index]))))
         }
+        return returnedPrediction
 
     }
 

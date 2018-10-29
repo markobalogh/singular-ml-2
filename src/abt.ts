@@ -81,43 +81,48 @@ export class ABT {
         }
         return this;
     }
+
+    fromCSVString(csvString:string) {
+        let rowArray = csvString.split('\n');
+        //try to detect headers
+        if (rowArray[0].length !== rowArray[1].length) {
+            //first row is header row
+            var headers = rowArray[0].split(',');
+            var content = rowArray.slice(1).map((value)=>{
+                return value.split(',');
+            });
+        } else {
+            var headers:string[] = [];
+            var content = rowArray.map((value)=>{
+                return value.split(',');
+            });
+        }
+        //Detect any weird ending to the file...sometimes the last row is just an endline character and that messes things up
+        if (content[content.length-1].length !== content[content.length-2].length) {
+            //Chop off the last row if so.
+            content.pop();
+        }
+        //now, make sure each row has the same number of cells.
+        console.assert((new Set(content.map((value)=>{return value.length}))).size == 1, 'Unable to create ABT from CSV file: inconsistent number of columns across rows.');
+        //load data into ABT.
+        this.fromNestedArray(content);
+        //set names equal to headers if possible
+        if (headers.length != 0) {
+            this.features.forEach((value, index)=>{
+                this.features[index].name = headers[index];
+            });
+        }
+        return this;
+    }
     
     fromFile(filename:string) {
         if (filename.endsWith('.abt') || filename.endsWith('.json')) {
             Object.assign(this, JSON.parse(filesystem.readFileSync(filename).toString()));
+            return this;
         } else if (filename.endsWith('.csv') || filename.endsWith('.txt')) {
             let filecontent = filesystem.readFileSync(filename).toString();
-            let rowArray = filecontent.split('\n');
-            //try to detect headers
-            if (rowArray[0].length !== rowArray[1].length) {
-                //first row is header row
-                var headers = rowArray[0].split(',');
-                var content = rowArray.slice(1).map((value)=>{
-                    return value.split(',');
-                });
-            } else {
-                var headers:string[] = [];
-                var content = rowArray.map((value)=>{
-                    return value.split(',');
-                });
-            }
-            //Detect any weird ending to the file...sometimes the last row is just an endline character and that messes things up
-            if (content[content.length-1].length !== content[content.length-2].length) {
-                //Chop off the last row if so.
-                content.pop();
-            }
-            //now, make sure each row has the same number of cells.
-            console.assert((new Set(content.map((value)=>{return value.length}))).size == 1, 'Unable to create ABT from CSV file: inconsistent number of columns across rows.');
-            //load data into ABT.
-            this.fromNestedArray(content);
-            //set names equal to headers if possible
-            if (headers.length != 0) {
-                this.features.forEach((value, index)=>{
-                    this.features[index].name = headers[index];
-                });
-            }
+            return this.fromCSVString(filecontent);
         }   
-        return this;
     }
 
     save(filename:string='untitled.abt') {

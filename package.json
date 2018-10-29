@@ -18,15 +18,15 @@
   },
   "homepage": "https://github.com/markobalogh/singular-ml-2#readme",
   "devDependencies": {
-    "@types/lodash": "^4.14.106",
-    "@types/node": "^9.6.0",
+    "@types/lodash": "^4.14.117",
+    "@types/node": "^9.6.35",
     "@types/paralleljs": "0.0.18",
-    "nodemon": "^1.17.2",
+    "nodemon": "^1.18.5",
     "ts-node": "^5.0.1",
     "typescript": "^2.9.2"
   },
   "dependencies": {
-    "lodash": "^4.17.5",
+    "lodash": "^4.17.11",
     "paralleljs": "^0.2.1",
     "typethon": "^1.0.1"
   }
