@@ -44,4 +44,11 @@ export declare class Feature {
      * Denormalizes the feature values if they have been normalized.
      */
     denormalize(): Feature;
+    /**
+     * Returns an object containing the minimum and maximum values of the feature.
+     */
+    range(): {
+        min: number;
+        max: number;
+    };
 }

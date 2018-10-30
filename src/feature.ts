@@ -4,7 +4,7 @@ import { Normalization, Normalizer } from './normalization';
 import { flatCopy } from './utilities';
 var plotter = new Plotter();
 
-export class Feature{
+export class Feature {
     normalization?:Normalization
     /**
      * Indicates whether this feature should be considered a target feature - this property naturally lies with the feature so that it remains true if features are shuffled or transformed. False by default.
@@ -146,5 +146,12 @@ export class Feature{
         this.values = this.values.map(value=>(<Normalization>this.normalization).denormalize(value));
         this.normalization = undefined;
         return this;
+    }
+
+    /**
+     * Returns an object containing the minimum and maximum values of the feature.
+     */
+    range():{min:number, max:number} {
+        return {min:Math.min(...this.values), max:Math.max(...this.values)};
     }
 }
