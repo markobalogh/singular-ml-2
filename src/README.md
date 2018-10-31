@@ -39,3 +39,13 @@ A consequence of this is that almost all objects passed around will be an instan
     - Finding optimal models
         - Cross validation
         - Running scoring methods (which should be their own objects)
+
+**Update**
+
+Rethinking a few things...
+A model is simply a function from one vector to another.
+Many common models are mappings from a vector to a scalar, which we can treat as a vector with a single component.
+A model should be agnostic with respect to the normalizations/denormalizations performed before/after it operates.
+A normalization is a mapping from a vector to another vector, so it is in some sense a model as well. 
+Models should be chainable when they are type safe. For example, a model mapping an n-component vector to a 1-component vector can only be attached to the end of a model that outputs an n-component vector.
+We can use type variables to represent model compatibility this way. There should be one type variable indicating input type and one type variable indicating output type.
