@@ -8,6 +8,18 @@ import { Optimizable } from './optimizer';
 import { ABT } from '.';
 import { ScoringFunction } from './scoringFunction';
 
+export class myModel<input,output> {
+    constructor() {
+
+    }
+
+    pipe<T>(modelToAttach:myModel<output, T>):myModel<input,T> {
+        
+    }
+}
+
+let x = new myModel<4, 3>()
+
 /**
  * Docs not written yet.
  */
