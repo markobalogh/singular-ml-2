@@ -49,6 +49,7 @@ A model should be agnostic with respect to the normalizations/denormalizations p
 A normalization is a mapping from a vector to another vector, so it is in some sense a model as well. 
 Models should be chainable when they are type safe. For example, a model mapping an n-component vector to a 1-component vector can only be attached to the end of a model that outputs an n-component vector.
 We can use type variables to represent model compatibility this way. There should be one type variable indicating input type and one type variable indicating output type.
+We should think about whether there really is value to using the type variables though.
 
 Even scoring/testing can be viewed in this "everything's a model" paradigm. A scoring function is a mapping from (the output of a model + the target label) to a number. You could get the score off of some model-chaining command like this:
 let score = new NearestNeighbors().learnFrom(myABT).pipe(MAE).query(queryInstance)
