@@ -1,5 +1,9 @@
 # singular-ml-2
 
+### possible name for public library: shredML - logo could be some paper being shredded.
+### grasp? chainML?
+
+
 Emphasize chaining, pipeline style class members (i.e. the methods of a class often perform some action on the instance and return a different class) so that the entire method chain is readable as a pipeline rather than using f(g(x)) method composition. We prefer passing functions into pipeline arguments rather than using enclosure style function composition. Example:
 `new ABT().fromFile('/test.abt').learnWith(NearestNeighbors).scoreWith(MAE)`
 instead of 
@@ -47,6 +51,8 @@ A model is simply a function from one vector to another.
 Many common models are mappings from a vector to a scalar, which we can treat as a vector with a single component.
 A model should be agnostic with respect to the normalizations/denormalizations performed before/after it operates.
 A normalization is a mapping from a vector to another vector, so it is in some sense a model as well. 
+
+Knowing this, normalization information should not be stored with instances. Normalizers should be considered models that map ABTs to normalizations. Normalizations themselves are models as I said above. 
 Models should be chainable when they are type safe. For example, a model mapping an n-component vector to a 1-component vector can only be attached to the end of a model that outputs an n-component vector.
 We can use type variables to represent model compatibility this way. There should be one type variable indicating input type and one type variable indicating output type.
 We should think about whether there really is value to using the type variables though.
@@ -57,3 +63,19 @@ the query() call is last because the pipe() call returns a new model that can be
 
 could also make model representing a query instance that allow syou to put it at the front of the pipe chain!! Although this doesn't really seem possible
 let score = 
+
+how can we support a left-to-right data flow with method chaining?
+First object in the chain needs to represent a query instance.
+
+Do we need left to right data flow?
+Left-to-right naturally communicates chronological order.
+You start with a learning algorithm, then you learn from a training set. Then you query on a query instance.
+
+Even an ABT can be considered a model that maps indices to instances.
+
+A test can be concieved of as the following model chain:
+for (let i of range(0, ABT.length)) {
+    ABT.pipe(new NearestNeighbors().withK(1)).pipe(MAE).query(i)
+}
+
+The model base class would necessarily need some internal accounting method through which it could track the models it's composed of. Maybe a list of models internally that are iterated through upon query. How should we handle the fact that model subclasses would need to override the query method though?

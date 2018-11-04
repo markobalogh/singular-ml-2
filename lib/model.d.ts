@@ -1,5 +1,9 @@
 import { Instance } from './instance';
 import { Prediction } from './prediction';
+export declare class myModel<input, output> {
+    constructor();
+    pipe<T>(modelToAttach: myModel<output, T>): myModel<input, T>;
+}
 /**
  * Docs not written yet.
  */
