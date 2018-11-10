@@ -2,6 +2,7 @@ import {Plotter} from './Plotter';
 import * as utilities from './utilities';
 import { Normalization, Normalizer } from './normalization';
 import { flatCopy } from './utilities';
+import { Model } from './model';
 var plotter = new Plotter();
 
 export class Feature {

@@ -1,48 +1,16 @@
-import { Feature } from './feature';
-import { Instance } from './instance';
-export declare class ABT {
-    features: Feature[];
+import { Model } from './model';
+export declare class ABT extends Model<number, number[]> {
     /**
-     * Indicates how instances in the ABT are contaminated with information from other instances. If 0, there is no contamination. If 1, then instance n+1 is contaminated with information from instance n. If -1, then instance n-1 is contaminated with information from instance n. This offset is used to ensure that trainingSet/testSet partitions are information-safe.
+     * Creates a new ABT. Data can be provided directly to the constructor or supplied using I/O methods like .from****()
      */
-    informationContaminationOffset: number;
-    readonly targetIndices: number[];
-    /**
-     * Creates a new ABT instance. To initialize the ABT with data you can call `new ABT().from*****()`.
-     */
-    constructor();
-    static fromObj(obj: any): ABT;
-    /**
-     * Returns a *new* ABT that is an exact copy of `this`.
-     */
-    copy(): this;
-    fromNestedArray(data: any[][]): this;
-    fromObjectOfArrays(data: {
-        [index: string]: any[];
-    }): this;
-    fromArrayOfObjects(data: {
-        [index: string]: any;
-    }[]): this;
+    constructor(featureNames?: string[], instances?: number[][]);
+    instances: number[][];
+    featureNames: string[];
+    query(input: number): number[];
     fromCSVString(csvString: string): this;
-    fromFile(filename: string): this | undefined;
-    save(filename?: string): this;
     exportAsCSV(filename?: string): this;
     /**
-     * Convenience property that allows you to access features in the ABT with `ABT._features.featureName` syntax, but **does not allow you to change any properties of the features**. UPDATE: apparently you actually can change properties of features this way.
-     */
-    readonly _features: {
-        [index: string]: Feature;
-    };
-    featureByName(featureName: string): Feature;
-    [Symbol.iterator](): {
-        next: () => IteratorResult<Instance>;
-    };
-    /**
-     * The number of instances stored in this ABT. It is assumed that all features have the same length.
-     */
-    readonly length: number;
-    /**
-     * Deletes any features whose name is not listed in `featureNames`. Returns the new ABT for chaining.
+     * Deletes any features whose name is not listed in the arguments. Returns the new ABT for chaining.
      */
     keepFeatures(...featureNames: string[]): this;
     /**
@@ -50,41 +18,8 @@ export declare class ABT {
      */
     removeFeature(featureName: string): this;
     /**
-     * Duplicates the feature with name `featureName` and pushed the feature to the end of `ABT.features` unless `pushToEnd` is false.
+     * Duplicates the feature with name `featureName` and places inserts it at the front of the ABT unless `pushToFront` is false, wherein the new feature is inserted in front of the duplicated feature.
      */
-    duplicateFeature(featureName: string, newFeatureName?: string, pushToEnd?: boolean): this;
-    getInstance(index: number): Instance;
-    /**
-     * Pushes instance onto this ABT. Forces the instance to take on the same normalization as the ABT. Throws an error if the instance is incompatible with this ABT.
-     *
-     */
-    pushInstance(instance: Instance): this;
-    /**
-     * Removes any instances that violate the given `condition`. Returns the ABT for chaining.
-     */
-    keepInstances(condition: (instance: Instance, index: number) => boolean): this;
-    /**
-     * Removes any instances which contain `NaN`.
-     */
-    removeNaNs(): this;
-    /**
-     * Use this property only for debugging purposes or iterating through all instances. If you know which instance you need, call ABT.getInstance() because this property dynamically regenerates the entire array of instances for each call.
-     */
-    readonly instances: Instance[];
-    /**
-     * Get multiple instances.
-     */
-    getInstances(indices: number[]): Instance[];
-    /**
-     * Returns a *new* copy of this ABT which contains only the instances at the given indices.
-     */
-    getSubset(indices: number[]): this;
-    /**
-     * Returns a copy of `this` containing a consecutive subset of instances from `startIndex` up to but not including `endIndex`. The default `startIndex` is 0 and the default `endIndex` is `this.length`.
-     */
-    getSlice(startIndex?: number, endIndex?: number): this;
-    /**
-     * Returns a `Map` from values returned by `condition` when called on the instances of this ABT to *new* ABTs, each of which holds the subset of instances for which `condition` returns each value, respectively.
-     */
-    partition<T>(condition: (instance: Instance, index: number) => T): Map<T, this>;
+    duplicateFeature(featureName: string, newFeatureName?: string, pushToFront?: boolean): this;
+    fromFile(filename: string): this | undefined;
 }
