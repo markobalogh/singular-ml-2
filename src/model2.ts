@@ -38,35 +38,35 @@ export class Model<inputType,outputType> {
     }
 }
 
-export class ModelA extends Model<string,[number,number]> {
-    constructor() {
-        super();
-    }
+// export class ModelA extends Model<string,[number,number]> {
+//     constructor() {
+//         super();
+//     }
 
-    query(input:string):[number,number] {
-        return [input.length, input.length/2];
-    }
-}
+//     query(input:string):[number,number] {
+//         return [input.length, input.length/2];
+//     }
+// }
 
-export class ModelB extends Model<[number,number],number> {
-    constructor() {
-        super();
-    }
+// export class ModelB extends Model<[number,number],number> {
+//     constructor() {
+//         super();
+//     }
 
-    query(input:[number,number]):number {
-        return input[0]+input[1];
-    }
-}
+//     query(input:[number,number]):number {
+//         return input[0]+input[1];
+//     }
+// }
 
-export class ModelC extends Model<number,string> {
-    constructor() {
-        super();
-    }
+// export class ModelC extends Model<number,string> {
+//     constructor() {
+//         super();
+//     }
 
-    query(input:number):string {
-        return input.toString()+'isTheNumber';
-    }
-}
+//     query(input:number):string {
+//         return input.toString()+'isTheNumber';
+//     }
+// }
 
 // export class NearestNeighbors extends Model<[number,number],number> {
 
@@ -78,11 +78,11 @@ export class ModelC extends Model<number,string> {
 
 // let x = new NearestNeighbors().pipeTo<number>(new Model2()).query()
 
-let x = new ModelA();
-console.log(x.query('hello'));
-let y = new ModelB();
-let z = x.pipeTo(y);
-let w = z.pipeTo(new ModelC());
-w = w.pipeTo(w)
+// let x = new ModelA();
+// console.log(x.query('hello'));
+// let y = new ModelB();
+// let z = x.pipeTo(y);
+// let w = z.pipeTo(new ModelC());
+// w = w.pipeTo(w)
 
-console.log(w.query('hello there'));
+// console.log(w.query('hello there'));
