@@ -118,6 +118,8 @@ export class ABT extends Model<number, number[]> {
         } else if (filename.endsWith('.csv') || filename.endsWith('.txt')) {
             let filecontent = filesystem.readFileSync(filename).toString();
             return this.fromCSVString(filecontent);
-        }   
+        } else {
+            throw new Error('An ABT can be constructed from .abt, .json, .csv, and .txt files only.')
+        }
     }
 }

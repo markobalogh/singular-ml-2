@@ -7,7 +7,11 @@ import { Instance } from "./instance";
 import { Prediction } from "./prediction";
 import { CrossValidatedMAE, ScoringFunction } from './scoringFunction';
 
-export abstract class LearningAlgorithm {
+export abstract class LearningAlgorithm<inputType,outputType> extends Model<inputType[], Model<inputType,outputType>> {
+    
+}
+
+export abstract class LearningAlgorithm2 {
     //learning algorithms are algorithms for going from a set of instances (the training set) to a Model.
     //It's tricky to figure out what the relationship between models & learning algorithms is for template based models...
     //Nearest neighbors may be best thought of as a learning algorithm whose objective is an aggregate of the scores of the models it outputs as it iterates through a cross-validation meta-dataset. Really what we want to score is the performance of nearest neighbors, as a function of the parameters of the nearest neighbors models, as we iterate over (trainingSet, testSet) pairs provided by a cross validation routine.

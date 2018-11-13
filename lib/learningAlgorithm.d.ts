@@ -4,7 +4,9 @@ import { Parameter } from "./parameter";
 import { Instance } from "./instance";
 import { Prediction } from "./prediction";
 import { ScoringFunction } from './scoringFunction';
-export declare abstract class LearningAlgorithm {
+export declare abstract class LearningAlgorithm<inputType, outputType> extends Model<inputType[], Model<inputType, outputType>> {
+}
+export declare abstract class LearningAlgorithm2 {
     abstract learnFrom(trainingSet: Instance[]): Model;
     abstract parameters: Parameter[];
     holdOutTest(dataset: ABT, testSplit?: number, randomize?: boolean, parallel?: boolean): TestResults;
