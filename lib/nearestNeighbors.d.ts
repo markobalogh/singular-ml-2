@@ -3,7 +3,10 @@ import { Model } from './model';
 export declare type DistanceWeighting = 'generalizedGaussian' | 'constant';
 export declare type ZeroDistanceHandling = 'continue' | 'remove' | 'return';
 export declare type DistanceMetric = 'euclidean';
-export declare class NearestNeighbors extends LearningAlgorithm<number[], number[]> {
+export declare class NearestNeighbors extends LearningAlgorithm<number[], {
+    prediction: number;
+    confidence: number;
+}[]> {
     /**
      * **k** in the traditional sense of k-nearest neighbors. Only the `k` nearest instances are allowed to vote when this model is queried. If undefined then all instances are given voting rights.
      */
@@ -46,7 +49,10 @@ export declare class NearestNeighbors extends LearningAlgorithm<number[], number
     static evaluateDistance(instanceA: number[], instanceB: number[], featureWeights?: number[]): number;
     query(templates: number[][]): NearestNeighborsModel;
 }
-export declare class NearestNeighborsModel extends Model<number[], number[]> {
+export declare class NearestNeighborsModel extends Model<number[], {
+    prediction: number;
+    confidence: number;
+}[]> {
     templates: number[][];
     k: number | undefined;
     sigma: number;
@@ -59,5 +65,8 @@ export declare class NearestNeighborsModel extends Model<number[], number[]> {
     private measureDistances;
     private applyDistanceWeighting;
     private vote;
-    query(instance: number[]): number[];
+    query(instance: number[]): {
+        prediction: number;
+        confidence: number;
+    }[];
 }

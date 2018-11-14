@@ -1,13 +1,17 @@
-import { TestResults } from './learningAlgorithm';
-/**
- * Scoring functions evaluate individual *tests*, which are collections of instances and associated predictions.
- */
-export declare type ScoringFunction = (testResults: TestResults) => number;
-/**
- * Cross validation scoring functions evaluate groups of tests.
- */
-export declare type CrossValidationScoringFunction = (tests: TestResults[]) => number;
-export declare var MAE: ScoringFunction;
-export declare var RMSE: ScoringFunction;
-export declare var CrossValidatedMAE: CrossValidationScoringFunction;
-export declare var CrossValidatedRMSE: CrossValidationScoringFunction;
+import { Model } from './model';
+export declare type TestResult = {
+    prediction: number;
+    target: number;
+    confidence?: number;
+};
+export declare abstract class ScoringFunction extends Model<TestResult[], number> {
+    abstract query(input: TestResult[]): number;
+}
+export declare class MAE extends ScoringFunction {
+    constructor();
+    query(input: TestResult[]): number;
+}
+export declare class RMSE extends ScoringFunction {
+    constructor();
+    query(input: TestResult[]): number;
+}

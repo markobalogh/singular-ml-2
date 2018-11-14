@@ -2,11 +2,12 @@ import { LearningAlgorithm } from './learningAlgorithm';
 import { randomSample, mean } from './utilities';
 import { sum } from 'lodash';
 import { Model } from './model';
+import { TestResult } from './scoringFunction';
 export type DistanceWeighting = 'generalizedGaussian'|'constant';
 export type ZeroDistanceHandling = 'continue'|'remove'|'return';
 export type DistanceMetric = 'euclidean';
 
-export class NearestNeighbors extends LearningAlgorithm<number[],number[]> {
+export class NearestNeighbors extends LearningAlgorithm<number[],{prediction:number,confidence:number}[]> {
     /**
      * **k** in the traditional sense of k-nearest neighbors. Only the `k` nearest instances are allowed to vote when this model is queried. If undefined then all instances are given voting rights.
      */
@@ -102,7 +103,7 @@ export class NearestNeighbors extends LearningAlgorithm<number[],number[]> {
 }
 
 //Should we also return a confidence?
-export class NearestNeighborsModel extends Model<number[], number[]>{
+export class NearestNeighborsModel extends Model<number[], {prediction:number,confidence:number}[]>{
 
     constructor(public templates:number[][], public k:number|undefined, public sigma:number, public exponent:number, public distanceWeighting:DistanceWeighting, public distanceMetric:DistanceMetric, public featureWeights:number[]|undefined, public zeroDistanceHandling:ZeroDistanceHandling) {
         super();
@@ -110,8 +111,8 @@ export class NearestNeighborsModel extends Model<number[], number[]>{
 
     private measureDistances(queryInstance:number[]):number[] {
         let returnArray = new Array<number>(this.templates.length);
-        for (let otherInstance of this.templates) {
-            returnArray.push(NearestNeighbors.evaluateDistance(queryInstance, otherInstance, this.featureWeights));
+        for (let i=0;i<this.templates.length;i++) {
+            returnArray[i] = NearestNeighbors.evaluateDistance(queryInstance, this.templates[i], this.featureWeights);
         }
         return returnArray;
     }
@@ -130,7 +131,7 @@ export class NearestNeighborsModel extends Model<number[], number[]>{
         }
     }
 
-    private vote(distances:number[], queryInstance:number[]):number[] {
+    private vote(distances:number[], queryInstance:number[]):{prediction:number,confidence:number}[] {
         let distancesAndVotes = distances.map((value,index)=>{
             return {distance:distances[index], template:this.templates[index]}
         }).sort((a,b)=>a.distance - b.distance);
@@ -145,7 +146,7 @@ export class NearestNeighborsModel extends Model<number[], number[]>{
             if (this.zeroDistanceHandling == 'continue') {
                 //do nothing
             } else if (this.zeroDistanceHandling == 'return') {
-                return  votes[zeroIndex]
+                return votes[zeroIndex].filter((value,index)=>isNaN(queryInstance[index])).map(value=>{ return {prediction:value,confidence:1}});
             } else if (this.zeroDistanceHandling == 'remove') {
                 //note how inefficient this is
                 votes = votes.filter((value,index)=>distances[index] != 0);
@@ -163,11 +164,29 @@ export class NearestNeighborsModel extends Model<number[], number[]>{
             //if not, return the weighted average of the votes
             returnedPrediction = votes[0].map((value,index)=>mean(votes.map(instance=>instance[index]), weights));
         }
-        return returnedPrediction
+        //return a testResult object for each NaN in the query instance (each NaN represents a requested prediction)
+        let returnArray:{prediction:number,confidence:number}[] = [];
+        for (let i=0;i<returnedPrediction.length;i++) {
+            if (isNaN(queryInstance[i])) {
+                //index i is a column for which we need to provide a prediction. iterate through the instances to calculate a prediction.
+                let sum = 0;
+                let sumweights = 0;
+                //potential optimization: sumweights will be the same for each requested prediction. here we repeat its computation for each requested prediction.
+                for (let k=0;k<votes.length;k++) {
+                    sum += votes[k][i];
+                    sumweights += weights[k];
+                }
+                returnArray.push({
+                    prediction: sum/sumweights,
+                    confidence: sumweights
+                });
+            }
+        }
+        return returnArray;
 
     }
 
-    query(instance:number[]):number[] {
+    query(instance:number[]):{prediction:number,confidence:number}[] {
         return this.vote(this.measureDistances(instance), instance);
     }
 }
