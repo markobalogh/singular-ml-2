@@ -23,14 +23,14 @@ export class HoldOutCrossValidator extends CrossValidator<number[], {prediction:
 
     query(input:{learningAlgorithm:LearningAlgorithm<number[], {prediction:number,confidence:number}[]>, dataset:ABT, targetFeatureNames:string[]}):TestResult[] {
         //slice dataset into a test set and training set.
-        let indices = range(input.dataset.instances.length);
+        let indices = range(input.dataset.descriptiveInstances.length);
         if (this.randomize) {
             indices = shuffle(indices);
         }
         let testSetSize = Math.ceil(this.testSplit * indices.length);
         let testSet = (indices.slice(0, testSetSize)).map(index=>input.dataset.query(index));
         let trainingSet = indices.slice(testSetSize + Math.abs(this.informationContaminationOffset), indices.length).map(index=>input.dataset.query(index));
-        let model = input.learningAlgorithm.query(input.dataset.instances);
+        let model = input.learningAlgorithm.query(input.dataset.descriptiveInstances);
         let returnArray:TestResult[] = [];
         for (let i=0;i<testSet.length;i++) {
             let modelOutput = model.query(testSet[i])
