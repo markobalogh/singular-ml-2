@@ -2,10 +2,27 @@ import { LearningAlgorithm } from './learningAlgorithm';
 import { ABT } from "./abt";
 import { Model } from './model';
 import { TestResult } from './scoringFunction';
-export declare abstract class CrossValidator<inputType, outputType> extends Model<[LearningAlgorithm<inputType, outputType>, ABT], TestResult[]> {
-    abstract query(input: [LearningAlgorithm<inputType, outputType>, ABT]): TestResult[];
+export declare abstract class CrossValidator<inputType, outputType> extends Model<{
+    learningAlgorithm: LearningAlgorithm<number[], {
+        prediction: number;
+        confidence: number;
+    }[]>;
+    dataset: ABT;
+    targetFeatureNames: string[];
+}, TestResult[]> {
+    abstract query(input: {
+        learningAlgorithm: LearningAlgorithm<number[], {
+            prediction: number;
+            confidence: number;
+        }[]>;
+        dataset: ABT;
+        targetFeatureNames: string[];
+    }): TestResult[];
 }
-export declare class HoldOutCrossValidator extends CrossValidator<number[], number[]> {
+export declare class HoldOutCrossValidator extends CrossValidator<number[], {
+    prediction: number;
+    confidence: number;
+}[]> {
     testSplit: number;
     randomize: boolean;
     informationContaminationOffset: number;
@@ -14,7 +31,14 @@ export declare class HoldOutCrossValidator extends CrossValidator<number[], numb
      * `randomize` determines whether the test set contains instances randomly sampled from the ABT (default). Otherwise the test set consists of a contiguous slice of the ABT.
      */
     constructor(testSplit?: number, randomize?: boolean, informationContaminationOffset?: number);
-    query(input: [LearningAlgorithm<number[], number[]>, ABT]): TestResult[];
+    query(input: {
+        learningAlgorithm: LearningAlgorithm<number[], {
+            prediction: number;
+            confidence: number;
+        }[]>;
+        dataset: ABT;
+        targetFeatureNames: string[];
+    }): TestResult[];
 }
 export declare class KFoldCrossValidator<inputType, outputType> extends CrossValidator<inputType, outputType> {
     /**

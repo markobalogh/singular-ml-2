@@ -7,11 +7,11 @@ import { range, shuffle } from "./utilities";
 
 //A cross validator is a model mapping a learning algorithm and an ABT to a cross validated score
 
-export abstract class CrossValidator<inputType,outputType> extends Model<[LearningAlgorithm<inputType, outputType>,ABT], TestResult[]> {
-    abstract query(input:[LearningAlgorithm<inputType,outputType>, ABT]):TestResult[]
+export abstract class CrossValidator<inputType,outputType> extends Model<{learningAlgorithm:LearningAlgorithm<number[], {prediction:number,confidence:number}[]>, dataset:ABT, targetFeatureNames:string[]}, TestResult[]> {
+    abstract query(input:{learningAlgorithm:LearningAlgorithm<number[], {prediction:number,confidence:number}[]>, dataset:ABT, targetFeatureNames:string[]}):TestResult[]
 }
 
-export class HoldOutCrossValidator extends CrossValidator<number[], number[]> {
+export class HoldOutCrossValidator extends CrossValidator<number[], {prediction:number,confidence:number}[]> {
 
     /**
      * `testSplit` is the proportion of the incoming ABT that will be held out as the test set.
@@ -21,17 +21,22 @@ export class HoldOutCrossValidator extends CrossValidator<number[], number[]> {
         super();
     }
 
-    query(input:[LearningAlgorithm<number[], number[]>, ABT]):TestResult[] {
+    query(input:{learningAlgorithm:LearningAlgorithm<number[], {prediction:number,confidence:number}[]>, dataset:ABT, targetFeatureNames:string[]}):TestResult[] {
         //slice dataset into a test set and training set.
-        let indices = range(input[1].instances.length);
+        let indices = range(input.dataset.instances.length);
         if (this.randomize) {
             indices = shuffle(indices);
         }
         let testSetSize = Math.ceil(this.testSplit * indices.length);
-        let testSet = (indices.slice(0, testSetSize)).map(index=>input[1].query(index));
-        let trainingSet = indices.slice(testSetSize + Math.abs(this.informationContaminationOffset), indices.length).map(index=>input[1].query(index));
-        let model = input[0].query(input[1].instances);
-        return trainingSet.map(value=>model.query(value))
+        let testSet = (indices.slice(0, testSetSize)).map(index=>input.dataset.query(index));
+        let trainingSet = indices.slice(testSetSize + Math.abs(this.informationContaminationOffset), indices.length).map(index=>input.dataset.query(index));
+        let model = input.learningAlgorithm.query(input.dataset.instances);
+        let returnArray:TestResult[] = [];
+        for (let i=0;i<testSet.length;i++) {
+            let modelOutput = model.query(testSet[i])
+            //model output will contain one prediction/confidence pair per target feature.
+            returnArray[i] = model.query(testSet[i]).map(obj=>{return {...obj, target: })
+        }
         return new TestResults(testSet, this.learnFrom(trainingSet).test(testSet));
     }
 }
