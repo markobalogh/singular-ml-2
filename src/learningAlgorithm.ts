@@ -7,7 +7,7 @@ import { Instance } from "./instance";
 import { Prediction } from "./prediction";
 import { CrossValidatedMAE, ScoringFunction } from './scoringFunction';
 
-export abstract class LearningAlgorithm<inputType,outputType> extends Model<inputType[], Model<inputType,outputType>> {
+export abstract class LearningAlgorithm extends Model<ABT, Model<number[],{prediction:number,confidence:number}[]>> {
     
 }
 

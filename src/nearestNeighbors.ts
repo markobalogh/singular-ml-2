@@ -3,11 +3,12 @@ import { randomSample, mean } from './utilities';
 import { sum } from 'lodash';
 import { Model } from './model';
 import { TestResult } from './scoringFunction';
+import { ABT } from './abt';
 export type DistanceWeighting = 'generalizedGaussian'|'constant';
 export type ZeroDistanceHandling = 'continue'|'remove'|'return';
 export type DistanceMetric = 'euclidean';
 
-export class NearestNeighbors extends LearningAlgorithm<number[],{prediction:number,confidence:number}[]> {
+export class NearestNeighbors extends LearningAlgorithm {
     /**
      * **k** in the traditional sense of k-nearest neighbors. Only the `k` nearest instances are allowed to vote when this model is queried. If undefined then all instances are given voting rights.
      */
@@ -97,15 +98,15 @@ export class NearestNeighbors extends LearningAlgorithm<number[],{prediction:num
         }
     }
 
-    query(templates:number[][]):NearestNeighborsModel {
-        return new NearestNeighborsModel(templates, this.k, this.sigma, this.exponent, this.distanceWeighting, this.distanceMetric, this.featureWeights, this.zeroDistanceHandling);
+    query(abt:ABT):NearestNeighborsModel {
+        return new NearestNeighborsModel(abt.descriptiveInstances, abt.targetInstances, this.k, this.sigma, this.exponent, this.distanceWeighting, this.distanceMetric, this.featureWeights, this.zeroDistanceHandling);
     }
 }
 
 //Should we also return a confidence?
 export class NearestNeighborsModel extends Model<number[], {prediction:number,confidence:number}[]>{
 
-    constructor(public templates:number[][], public k:number|undefined, public sigma:number, public exponent:number, public distanceWeighting:DistanceWeighting, public distanceMetric:DistanceMetric, public featureWeights:number[]|undefined, public zeroDistanceHandling:ZeroDistanceHandling) {
+    constructor(public templates:number[][], public targets:number[][], public k:number|undefined, public sigma:number, public exponent:number, public distanceWeighting:DistanceWeighting, public distanceMetric:DistanceMetric, public featureWeights:number[]|undefined, public zeroDistanceHandling:ZeroDistanceHandling) {
         super();
     }
 
@@ -133,20 +134,20 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
 
     private vote(distances:number[], queryInstance:number[]):{prediction:number,confidence:number}[] {
         let distancesAndVotes = distances.map((value,index)=>{
-            return {distance:distances[index], template:this.templates[index]}
+            return {distance:distances[index], targets:this.targets[index]}
         }).sort((a,b)=>a.distance - b.distance);
         if (this.k) {
             distancesAndVotes = distancesAndVotes.slice(0, this.k);
         }
         distances = distancesAndVotes.map(value=>value.distance);
-        let votes = distancesAndVotes.map(value=>value.template);
+        let votes = distancesAndVotes.map(value=>value.targets);
         //check if any neighboring instance is a distance of zero away from the query instance.
         let zeroIndex = distances.findIndex(distance=>distance == 0);
         if (zeroIndex != -1) {
             if (this.zeroDistanceHandling == 'continue') {
                 //do nothing
             } else if (this.zeroDistanceHandling == 'return') {
-                return votes[zeroIndex].filter((value,index)=>isNaN(queryInstance[index])).map(value=>{ return {prediction:value,confidence:1}});
+                return votes[zeroIndex].map(value=>{return {prediction:value, confidence:1}});
             } else if (this.zeroDistanceHandling == 'remove') {
                 //note how inefficient this is
                 votes = votes.filter((value,index)=>distances[index] != 0);
@@ -164,23 +165,20 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
             //if not, return the weighted average of the votes
             returnedPrediction = votes[0].map((value,index)=>mean(votes.map(instance=>instance[index]), weights));
         }
-        //return a testResult object for each NaN in the query instance (each NaN represents a requested prediction)
+        //return a testResult object for each target feature
         let returnArray:{prediction:number,confidence:number}[] = [];
         for (let i=0;i<returnedPrediction.length;i++) {
-            if (isNaN(queryInstance[i])) {
-                //index i is a column for which we need to provide a prediction. iterate through the instances to calculate a prediction.
-                let sum = 0;
-                let sumweights = 0;
-                //potential optimization: sumweights will be the same for each requested prediction. here we repeat its computation for each requested prediction.
-                for (let k=0;k<votes.length;k++) {
-                    sum += votes[k][i];
-                    sumweights += weights[k];
-                }
-                returnArray.push({
-                    prediction: sum/sumweights,
-                    confidence: sumweights
-                });
+            let sum = 0;
+            let sumweights = 0;
+            //potential optimization: sumweights will be the same for each requested prediction. here we repeat its computation for each requested prediction.
+            for (let k=0;k<votes.length;k++) {
+                sum += votes[k][i];
+                sumweights += weights[k];
             }
+            returnArray.push({
+                prediction: sum/sumweights,
+                confidence: sumweights
+            });
         }
         return returnArray;
 
