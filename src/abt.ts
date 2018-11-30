@@ -162,4 +162,18 @@ export class ABT extends Model<number, number[]> {
             throw new Error('An ABT can be constructed from .abt, .json, .csv, and .txt files only.')
         }
     }
+
+    /**
+     * Returns a new ABT representing only the instances at the given indices.
+     */
+    subset(indices:number[]) {
+        let newABT = Object.assign(new ABT(), this);
+        newABT.descriptiveInstances = newABT.descriptiveInstances.filter((value,index)=>{
+            return indices.includes(index);
+        });
+        newABT.targetInstances = newABT.targetInstances.filter((value,index)=>{
+            return indices.includes(index);
+        })
+        return newABT;
+    }
 }

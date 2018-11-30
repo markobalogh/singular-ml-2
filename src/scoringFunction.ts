@@ -1,13 +1,12 @@
 import { Prediction } from './prediction';
 import { Instance } from './instance';
 import { mean } from './utilities';
-import { TestResults } from './learningAlgorithm';
 import { Model } from './model';
 
 export type TestResult = {
     prediction:number,
     target:number,
-    confidence?:number
+    confidence:number
 }; //should this be testResult or testResults?
 
 export abstract class ScoringFunction extends Model<TestResult[], number> {

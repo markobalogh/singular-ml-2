@@ -103,7 +103,6 @@ export class NearestNeighbors extends LearningAlgorithm {
     }
 }
 
-//Should we also return a confidence?
 export class NearestNeighborsModel extends Model<number[], {prediction:number,confidence:number}[]>{
 
     constructor(public templates:number[][], public targets:number[][], public k:number|undefined, public sigma:number, public exponent:number, public distanceWeighting:DistanceWeighting, public distanceMetric:DistanceMetric, public featureWeights:number[]|undefined, public zeroDistanceHandling:ZeroDistanceHandling) {
