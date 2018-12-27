@@ -3,20 +3,12 @@ import { ABT } from "./abt";
 import { Model } from './model';
 import { TestResult } from './scoringFunction';
 export declare abstract class CrossValidator<inputType, outputType> extends Model<{
-    learningAlgorithm: LearningAlgorithm<number[], {
-        prediction: number;
-        confidence: number;
-    }[]>;
+    learningAlgorithm: LearningAlgorithm;
     dataset: ABT;
-    targetFeatureNames: string[];
 }, TestResult[]> {
     abstract query(input: {
-        learningAlgorithm: LearningAlgorithm<number[], {
-            prediction: number;
-            confidence: number;
-        }[]>;
+        learningAlgorithm: LearningAlgorithm;
         dataset: ABT;
-        targetFeatureNames: string[];
     }): TestResult[];
 }
 export declare class HoldOutCrossValidator extends CrossValidator<number[], {
@@ -32,20 +24,7 @@ export declare class HoldOutCrossValidator extends CrossValidator<number[], {
      */
     constructor(testSplit?: number, randomize?: boolean, informationContaminationOffset?: number);
     query(input: {
-        learningAlgorithm: LearningAlgorithm<number[], {
-            prediction: number;
-            confidence: number;
-        }[]>;
+        learningAlgorithm: LearningAlgorithm;
         dataset: ABT;
-        targetFeatureNames: string[];
     }): TestResult[];
-}
-export declare class KFoldCrossValidator<inputType, outputType> extends CrossValidator<inputType, outputType> {
-    /**
-     * K is the number of folds.
-     */
-    constructor(k: number);
-}
-export declare class LeaveOneOutCrossValidator<inputType, outputType> extends CrossValidator<inputType, outputType> {
-    query(input: [LearningAlgorithm<inputType, outputType>, ABT]): Model<inputType, outputType>;
 }

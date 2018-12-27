@@ -2,7 +2,7 @@ import { Model } from './model';
 export declare type TestResult = {
     prediction: number;
     target: number;
-    confidence?: number;
+    confidence: number;
 };
 export declare abstract class ScoringFunction extends Model<TestResult[], number> {
     abstract query(input: TestResult[]): number;

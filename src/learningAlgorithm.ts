@@ -1,6 +1,6 @@
 import { ABT } from ".";
 import { Model } from './model';
-import { Optimizable } from "./optimizer";
+// import { Optimizable } from "./optimizer";
 import { Parameter } from "./parameter";
 import { range, shuffle } from "./utilities";
 import { Instance } from "./instance";

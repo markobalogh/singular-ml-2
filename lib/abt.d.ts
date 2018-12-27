@@ -1,13 +1,21 @@
 import { Model } from './model';
 export declare class ABT extends Model<number, number[]> {
+    descriptiveFeatureNames: string[];
+    targetFeatureNames: string[];
+    descriptiveInstances: number[][];
+    targetInstances: number[][];
     /**
      * Creates a new ABT. Data can be provided directly to the constructor or supplied using I/O methods like .from****()
      */
-    constructor(featureNames?: string[], instances?: number[][]);
-    instances: number[][];
-    featureNames: string[];
+    constructor(descriptiveFeatureNames?: string[], targetFeatureNames?: string[], descriptiveInstances?: number[][], targetInstances?: number[][]);
+    /**
+     * Returns the descriptive instance at index `input`.
+     */
     query(input: number): number[];
-    fromCSVString(csvString: string): this;
+    /**
+     * If `targetFeatureNames` is provided, columns with headers in `targetFeatureNames` will be treated as target features. If not, the last column will be assumed to be the target feature.
+     */
+    fromCSVString(csvString: string, targetFeatureNames?: string[]): this;
     exportAsCSV(filename?: string): this;
     /**
      * Deletes any features whose name is not listed in the arguments. Returns the new ABT for chaining.
@@ -22,4 +30,8 @@ export declare class ABT extends Model<number, number[]> {
      */
     duplicateFeature(featureName: string, newFeatureName?: string, pushToFront?: boolean): this;
     fromFile(filename: string): this;
+    /**
+     * Returns a new ABT representing only the instances at the given indices.
+     */
+    subset(indices: number[]): ABT & this;
 }

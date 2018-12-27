@@ -1,18 +1,6 @@
-import { Instance } from './instance';
-import { Prediction } from './prediction';
-export declare class myModel<input, output> {
-    constructor();
-    pipe<T>(modelToAttach: myModel<output, T>): myModel<input, T>;
-}
-/**
- * Docs not written yet.
- */
-export declare abstract class Model {
-    /**
-     * The convention is that query instances have `NaN` values for any target indices, and do not necessarily have target indices identified (instance.targetIndices may be an empty array).
-     *
-     * An instance might not be provided in the case of a generative model, or, if an instance is provided to a generative model, the returned value is the likelihood of the query instance under the generative model.
-     */
-    abstract query(instance?: Instance): Prediction;
-    test(testSet: Instance[]): Prediction[];
+export declare class Model<inputType, outputType> {
+    constructor(pipeChain?: Model<unknown, unknown>[]);
+    protected pipeChain: Model<unknown, unknown>[];
+    pipeTo<newOutputType>(model: Model<outputType, newOutputType>): Model<inputType, newOutputType>;
+    query(input: inputType): outputType;
 }
