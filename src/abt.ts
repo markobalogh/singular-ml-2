@@ -86,14 +86,14 @@ export class ABT extends Model<number, number[]> {
         return this;
     }
 
-    exportAsCSV(filename:string='untitled.csv') {
-        let writestring = `${this.descriptiveFeatureNames.join(', ')}\n`
-        for (let instance of this.descriptiveInstances) {
-            writestring += instance.map(num=>String(num)).join(', ') + '\n';
-        }
-        filesystem.writeFileSync(filename, writestring);
-        return this;
-    }
+    // exportAsCSV(filename:string='untitled.csv') {
+    //     let writestring = `${this.descriptiveFeatureNames.join(', ')}\n`
+    //     for (let instance of this.descriptiveInstances) {
+    //         writestring += instance.map(num=>String(num)).join(', ') + '\n';
+    //     }
+    //     filesystem.writeFileSync(filename, writestring);
+    //     return this;
+    // }
 
     /**
      * Deletes any features whose name is not listed in the arguments. Returns the new ABT for chaining.

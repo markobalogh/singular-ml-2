@@ -16,7 +16,6 @@ export declare class ABT extends Model<number, number[]> {
      * If `targetFeatureNames` is provided, columns with headers in `targetFeatureNames` will be treated as target features. If not, the last column will be assumed to be the target feature.
      */
     fromCSVString(csvString: string, targetFeatureNames?: string[]): this;
-    exportAsCSV(filename?: string): this;
     /**
      * Deletes any features whose name is not listed in the arguments. Returns the new ABT for chaining.
      */
