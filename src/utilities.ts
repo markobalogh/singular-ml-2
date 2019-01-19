@@ -1,5 +1,4 @@
 import * as _ from 'lodash';
-import crypto = require('crypto');
 
 export function stdev(values:number[], subtractOneFromDenominator:boolean=true):number {
     let mean = _.mean(values);

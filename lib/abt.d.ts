@@ -29,7 +29,6 @@ export declare class ABT extends Model<number, number[]> {
      * Duplicates the feature with name `featureName` and places inserts it at the front of the ABT unless `pushToFront` is false, wherein the new feature is inserted in front of the duplicated feature.
      */
     duplicateFeature(featureName: string, newFeatureName?: string, pushToFront?: boolean): this;
-    fromFile(filename: string): this;
     /**
      * Returns a new ABT representing only the instances at the given indices.
      */

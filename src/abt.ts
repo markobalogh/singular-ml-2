@@ -1,6 +1,5 @@
 import * as utilities from './utilities';
 import {Feature} from './feature';
-import * as filesystem from 'fs';
 import { flatCopy, unique, range } from './utilities';
 import { Instance } from './instance';
 import { Model } from './model';
@@ -151,17 +150,17 @@ export class ABT extends Model<number, number[]> {
         return this;
     }
 
-    fromFile(filename:string) {
-        if (filename.endsWith('.abt') || filename.endsWith('.json')) {
-            Object.assign(this, JSON.parse(filesystem.readFileSync(filename).toString()));
-            return this;
-        } else if (filename.endsWith('.csv') || filename.endsWith('.txt')) {
-            let filecontent = filesystem.readFileSync(filename).toString();
-            return this.fromCSVString(filecontent);
-        } else {
-            throw new Error('An ABT can be constructed from .abt, .json, .csv, and .txt files only.')
-        }
-    }
+    // fromFile(filename:string) {
+    //     if (filename.endsWith('.abt') || filename.endsWith('.json')) {
+    //         Object.assign(this, JSON.parse(filesystem.readFileSync(filename).toString()));
+    //         return this;
+    //     } else if (filename.endsWith('.csv') || filename.endsWith('.txt')) {
+    //         let filecontent = filesystem.readFileSync(filename).toString();
+    //         return this.fromCSVString(filecontent);
+    //     } else {
+    //         throw new Error('An ABT can be constructed from .abt, .json, .csv, and .txt files only.')
+    //     }
+    // }
 
     /**
      * Returns a new ABT representing only the instances at the given indices.
