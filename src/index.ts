@@ -10,7 +10,6 @@ export * from './nearestNeighbors';
 export * from './normalization';
 // export * from './optimizer';
 export * from './parameter';
-export * from './plotter';
 export * from './prediction';
 export * from './scoringFunction';
 export * from './utilities';

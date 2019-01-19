@@ -16,7 +16,6 @@ export declare class Feature {
     getValue(index: number): number;
     setValue(index: number, newValue: number): Feature;
     getSlice(startIndex: number, endIndex: number): number[];
-    plot(): void;
     push(value: number): Feature;
     extend(values: number[]): Feature;
     /**

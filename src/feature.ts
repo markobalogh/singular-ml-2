@@ -1,9 +1,8 @@
-import {Plotter} from './Plotter';
+// import {Plotter} from './Plotter';
 import * as utilities from './utilities';
 import { Normalization, Normalizer } from './normalization';
 import { flatCopy } from './utilities';
 import { Model } from './model';
-var plotter = new Plotter();
 
 export class Feature {
     normalization?:Normalization
@@ -43,13 +42,13 @@ export class Feature {
         return this.values.slice(startIndex, endIndex);
     }
 
-    plot():void {
-        let xarray = []
-        for (let i=0; i < this.values.length;i++) {
-            xarray.push(i);
-        }
-        plotter.plot(xarray, this.values)
-    }
+    // plot():void {
+    //     let xarray = []
+    //     for (let i=0; i < this.values.length;i++) {
+    //         xarray.push(i);
+    //     }
+    //     plotter.plot(xarray, this.values)
+    // }
 
     push(value:number):Feature {
         this.values.push(value);
