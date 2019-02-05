@@ -156,28 +156,29 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
         //weigh the votes by distance
         let weights = distances.map(distance=>this.applyDistanceWeighting(distance));
         let returnedPrediction:number[] = [];
+        //return a testResult object for each target feature
+        let returnArray:{prediction:number,confidence:number}[] = [];
         //check if the closest instance got a weight of zero.
         if (weights[0] == 0) {
             //in that case, we return the instance exactly as we got it, because we can't provide any predictive value.
-            returnedPrediction = queryInstance;
+            returnArray = queryInstance.map((val,index)=>{
+                return {prediction:val, confidence:0};
+            });
         } else {
             //if not, return the weighted average of the votes
-            returnedPrediction = votes[0].map((value,index)=>mean(votes.map(instance=>instance[index]), weights));
-        }
-        //return a testResult object for each target feature
-        let returnArray:{prediction:number,confidence:number}[] = [];
-        for (let i=0;i<returnedPrediction.length;i++) {
-            let sum = 0;
-            let sumweights = 0;
-            //potential optimization: sumweights will be the same for each requested prediction. here we repeat its computation for each requested prediction.
-            for (let k=0;k<votes.length;k++) {
-                sum += votes[k][i];
-                sumweights += weights[k];
+            for (let i=0;i<votes[0].length;i++) {
+                let sum = 0;
+                let sumweights = 0;
+                //potential optimization: sumweights will be the same for each requested prediction. here we repeat its computation for each requested prediction.
+                for (let k=0;k<votes.length;k++) {
+                    sum += votes[k][i] * weights[k];
+                    sumweights += weights[k];
+                }
+                returnArray.push({
+                    prediction: sum/sumweights,
+                    confidence: sumweights
+                });
             }
-            returnArray.push({
-                prediction: sum/sumweights,
-                confidence: sumweights
-            });
         }
         return returnArray;
 
