@@ -68,4 +68,17 @@ export declare class NearestNeighborsModel extends Model<number[], {
         prediction: number;
         confidence: number;
     }[];
+    /**
+     * Voting subprocesses where the distances, weights, and votes are returned for inspection.
+     */
+    private voteWithInspection;
+    queryWithInspection(instance: number[]): {
+        output: {
+            prediction: number;
+            confidence: number;
+        }[];
+        distances: number[];
+        weights: number[];
+        votes: number[][];
+    };
 }
