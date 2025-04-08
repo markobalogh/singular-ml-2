@@ -6,7 +6,7 @@ import { TestResult } from './scoringFunction';
 import { ABT } from './abt';
 export type DistanceWeighting = 'generalizedGaussian'|'constant';
 export type ZeroDistanceHandling = 'continue'|'remove'|'return';
-export type DistanceMetric = 'euclidean';
+export type DistanceMetric = 'euclidean' | 'mahalanobis';
 
 export class NearestNeighbors extends LearningAlgorithm {
     /**
@@ -80,24 +80,6 @@ export class NearestNeighbors extends LearningAlgorithm {
         return this;
     }
 
-    static evaluateDistance(instanceA:number[], instanceB:number[], featureWeights?:number[]):number {
-        if (featureWeights) {
-            let sum = 0;
-            let weightSum = 0;
-            for (let i=0;i<instanceA.length;i++) {
-                sum += Math.pow((instanceA[i]-instanceB[i]),2)*featureWeights[i];
-                weightSum += featureWeights[i];
-            }
-            return Math.sqrt(sum/weightSum);
-        } else {
-            let sum = 0;
-            for (let i=0;i<instanceA.length;i++) {
-                sum += Math.pow((instanceA[i] - instanceB[i]),2);
-            }
-            return Math.sqrt(sum);
-        }
-    }
-
     query(abt:ABT):NearestNeighborsModel {
         return new NearestNeighborsModel(abt.descriptiveInstances, abt.targetInstances, this.k, this.sigma, this.exponent, this.distanceWeighting, this.distanceMetric, this.featureWeights, this.zeroDistanceHandling);
     }
@@ -105,14 +87,187 @@ export class NearestNeighbors extends LearningAlgorithm {
 
 export class NearestNeighborsModel extends Model<number[], {prediction:number,confidence:number}[]>{
 
+    private covarianceMatrix: number[][] | null = null;
+    private inverseCovarianceMatrix: number[][] | null = null;
+
     constructor(public templates:number[][], public targets:number[][], public k:number|undefined, public sigma:number, public exponent:number, public distanceWeighting:DistanceWeighting, public distanceMetric:DistanceMetric, public featureWeights:number[]|undefined, public zeroDistanceHandling:ZeroDistanceHandling) {
         super();
+
+        // Calculate the covariance matrix if using Mahalanobis distance
+        if (this.distanceMetric === 'mahalanobis') {
+            this.calculateCovarianceMatrix();
+        }
+    }
+
+    /**
+     * Calculate the covariance matrix from all templates
+     */
+    private calculateCovarianceMatrix(): void {
+        const numFeatures = this.templates[0].length;
+        const numSamples = this.templates.length;
+        
+        // Calculate means for each feature
+        const means = new Array(numFeatures).fill(0);
+        for (let i = 0; i < numSamples; i++) {
+            for (let j = 0; j < numFeatures; j++) {
+                means[j] += this.templates[i][j];
+            }
+        }
+        for (let j = 0; j < numFeatures; j++) {
+            means[j] /= numSamples;
+        }
+        
+        // Calculate covariance matrix
+        this.covarianceMatrix = Array(numFeatures).fill(0).map(() => Array(numFeatures).fill(0));
+        
+        for (let i = 0; i < numFeatures; i++) {
+            for (let j = 0; j < numFeatures; j++) {
+                let sum = 0;
+                for (let k = 0; k < numSamples; k++) {
+                    sum += (this.templates[k][i] - means[i]) * (this.templates[k][j] - means[j]);
+                }
+                this.covarianceMatrix[i][j] = sum / (numSamples - 1);
+            }
+        }
+        
+        // Calculate inverse covariance matrix
+        try {
+            this.inverseCovarianceMatrix = this.invertMatrix(this.covarianceMatrix);
+        } catch (error) {
+            console.error("Error inverting covariance matrix:", error);
+            this.inverseCovarianceMatrix = null;
+        }
+    }
+    
+    /**
+     * Invert a matrix using Gaussian elimination with pivoting
+     */
+    private invertMatrix(matrix: number[][]): number[][] {
+        const n = matrix.length;
+        const identityMatrix = Array(n).fill(0).map((_, i) => 
+            Array(n).fill(0).map((_, j) => i === j ? 1 : 0)
+        );
+        
+        // Create a copy of the matrix with small regularization on diagonal
+        const augmentedMatrix = matrix.map((row, i) => {
+            const newRow = [...row];
+            // Add small regularization term to diagonal for numerical stability
+            newRow[i] += 1e-10;
+            return [...newRow, ...identityMatrix[i]];
+        });
+        
+        // Gaussian elimination
+        for (let i = 0; i < n; i++) {
+            // Find pivot
+            let maxRow = i;
+            let maxVal = Math.abs(augmentedMatrix[i][i]);
+            
+            for (let j = i + 1; j < n; j++) {
+                const absVal = Math.abs(augmentedMatrix[j][i]);
+                if (absVal > maxVal) {
+                    maxVal = absVal;
+                    maxRow = j;
+                }
+            }
+            
+            // Swap rows if needed
+            if (maxRow !== i) {
+                [augmentedMatrix[i], augmentedMatrix[maxRow]] = [augmentedMatrix[maxRow], augmentedMatrix[i]];
+            }
+            
+            // Scale the pivot row
+            const pivot = augmentedMatrix[i][i];
+            if (Math.abs(pivot) < 1e-10) {
+                throw new Error("Matrix is singular or nearly singular");
+            }
+            
+            for (let j = i; j < 2 * n; j++) {
+                augmentedMatrix[i][j] /= pivot;
+            }
+            
+            // Eliminate other rows
+            for (let j = 0; j < n; j++) {
+                if (j !== i) {
+                    const factor = augmentedMatrix[j][i];
+                    for (let k = i; k < 2 * n; k++) {
+                        augmentedMatrix[j][k] -= factor * augmentedMatrix[i][k];
+                    }
+                }
+            }
+        }
+        
+        // Extract the inverse matrix
+        return augmentedMatrix.map(row => row.slice(n));
+    }
+
+    evaluateDistance(instanceA: number[], instanceB: number[], featureWeights?: number[]): number {
+        if (this.distanceMetric === 'euclidean') {
+            if (featureWeights) {
+                let sum = 0;
+                let weightSum = 0;
+                for (let i = 0; i < instanceA.length; i++) {
+                    sum += Math.pow((instanceA[i] - instanceB[i]), 2) * featureWeights[i];
+                    weightSum += featureWeights[i];
+                }
+                return Math.sqrt(sum / weightSum);
+            } else {
+                let sum = 0;
+                for (let i = 0; i < instanceA.length; i++) {
+                    sum += Math.pow((instanceA[i] - instanceB[i]), 2);
+                }
+                return Math.sqrt(sum);
+            }
+        } else if (this.distanceMetric === 'mahalanobis') {
+            // Calculate difference vector
+            const diff = instanceA.map((val, i) => val - instanceB[i]);
+            
+            if (this.inverseCovarianceMatrix && featureWeights) {
+                // COMBINED APPROACH - uses both weights AND correlations
+                let sum = 0;
+                for (let i = 0; i < diff.length; i++) {
+                    for (let j = 0; j < diff.length; j++) {
+                        // Scale correlation by sqrt of weights
+                        const scaledInvCov = this.inverseCovarianceMatrix[i][j] * 
+                                            Math.sqrt(featureWeights[i]) * 
+                                            Math.sqrt(featureWeights[j]);
+                        sum += diff[i] * scaledInvCov * diff[j];
+                    }
+                }
+                return Math.sqrt(sum);
+            } else if (this.inverseCovarianceMatrix) {
+                // Full Mahalanobis distance calculation using inverse covariance matrix
+                let sum = 0;
+                for (let i = 0; i < diff.length; i++) {
+                    for (let j = 0; j < diff.length; j++) {
+                        sum += diff[i] * this.inverseCovarianceMatrix[i][j] * diff[j];
+                    }
+                }
+                return Math.sqrt(sum);
+            } else {
+                // Fallback to Euclidean if inverse covariance isn't available
+                if (featureWeights) {
+                    let sum = 0;
+                    for (let i = 0; i < diff.length; i++) {
+                        sum += diff[i] * diff[i] * featureWeights[i];
+                    }
+                    return Math.sqrt(sum);
+                } else {
+                    let sum = 0;
+                    for (let i = 0; i < diff.length; i++) {
+                        sum += diff[i] * diff[i];
+                    }
+                    return Math.sqrt(sum);
+                }
+            }
+        } else {
+            throw new Error(`Unknown distance metric: ${this.distanceMetric}`);
+        }
     }
 
     private measureDistances(queryInstance:number[]):number[] {
         let returnArray = new Array<number>(this.templates.length);
         for (let i=0;i<this.templates.length;i++) {
-            returnArray[i] = NearestNeighbors.evaluateDistance(queryInstance, this.templates[i], this.featureWeights);
+            returnArray[i] = this.evaluateDistance(queryInstance, this.templates[i], this.featureWeights);
         }
         return returnArray;
     }

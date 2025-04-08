@@ -3,7 +3,7 @@ import { Model } from './model';
 import { ABT } from './abt';
 export declare type DistanceWeighting = 'generalizedGaussian' | 'constant';
 export declare type ZeroDistanceHandling = 'continue' | 'remove' | 'return';
-export declare type DistanceMetric = 'euclidean';
+export declare type DistanceMetric = 'euclidean' | 'mahalanobis';
 export declare class NearestNeighbors extends LearningAlgorithm {
     /**
      * **k** in the traditional sense of k-nearest neighbors. Only the `k` nearest instances are allowed to vote when this model is queried. If undefined then all instances are given voting rights.
@@ -44,7 +44,6 @@ export declare class NearestNeighbors extends LearningAlgorithm {
     withDistanceMetric(distanceMetric: DistanceMetric): this;
     withZeroDistanceHandling(zeroDistanceHandling: ZeroDistanceHandling): this;
     withFeatureWeights(featureWeights: number[]): this;
-    static evaluateDistance(instanceA: number[], instanceB: number[], featureWeights?: number[]): number;
     query(abt: ABT): NearestNeighborsModel;
 }
 export declare class NearestNeighborsModel extends Model<number[], {
@@ -60,7 +59,18 @@ export declare class NearestNeighborsModel extends Model<number[], {
     distanceMetric: DistanceMetric;
     featureWeights: number[] | undefined;
     zeroDistanceHandling: ZeroDistanceHandling;
+    private covarianceMatrix;
+    private inverseCovarianceMatrix;
     constructor(templates: number[][], targets: number[][], k: number | undefined, sigma: number, exponent: number, distanceWeighting: DistanceWeighting, distanceMetric: DistanceMetric, featureWeights: number[] | undefined, zeroDistanceHandling: ZeroDistanceHandling);
+    /**
+     * Calculate the covariance matrix from all templates
+     */
+    private calculateCovarianceMatrix;
+    /**
+     * Invert a matrix using Gaussian elimination with pivoting
+     */
+    private invertMatrix;
+    evaluateDistance(instanceA: number[], instanceB: number[], featureWeights?: number[]): number;
     private measureDistances;
     private applyDistanceWeighting;
     private vote;
