@@ -103,7 +103,7 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
     /**
      * Bandwidth factors used to determine the bandwidth used on a per-sample basis when using Abramson's pointwise gaussian distance weighting.
      */
-    private bandwidthFactors: number[] = [];
+    bandwidthFactors: number[] = [];
 
     constructor(public templates:number[][], public targets:number[][], public k:number|undefined, public sigma:number, public exponent:number, public bandwidthLocality:number, public distanceWeighting:DistanceWeighting, public distanceMetric:DistanceMetric, public featureWeights:number[]|undefined, public zeroDistanceHandling:ZeroDistanceHandling) {
         super();
