@@ -26,11 +26,15 @@ export class NearestNeighbors extends LearningAlgorithm {
      */
     public exponent: number = 2;
     /**
-     * Parameter acting as the proportionality factor between the sigma and the bandwidth used in Abramson's pointwise gaussian distance weighting. 
+     * Parameter acting that determines the fraction of all templates that are used to contribute to each local sample density estimate in the abramson's pointwise gaussian distance weighting process.
      * 
-     * Default value: 0.5 
+     * The asymptotically ideal number of samples to estimate sample density is n^(4/d+4). Therefore a good initial guess for bandwidth locality is n^(4/d+4) / n.
+     * 
+     * However, higher values are safer. 0.1 will tend to be fine. 
+     * 
+     * Default value: 0.1
      */
-    public bandwidthLocality: number = 0.5;
+    public bandwidthLocality: number = 0.1;
     /**
      * Each number in this list represents the weight of the corresponding feature during effective distance calculations. 
      * 
@@ -134,8 +138,7 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
         for (let i = 0; i < this.templates.length; i++) {
             //measure distances from this sample to all others.
             let distances = this.measureDistances(this.templates[i]).sort((a, b) => a - b); //distances in ascending order
-            //heuristic: the ideal number of samples to estimate sample density is sqrt(n)
-            distances = distances.slice(1, Math.ceil(Math.sqrt(this.templates.length)+1)); //+1 because the first distance will be zero (distance to itself)
+            distances = distances.slice(1, Math.ceil(this.templates.length * this.bandwidthLocality)+1); //+1 because the first distance will be zero (distance to itself)
             //use the average distance among these samples as the bandwidth factor for this sample
             this.bandwidthFactors[i] = mean(distances);
         }
@@ -331,7 +334,7 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
             case 'abramsonsPointwiseGaussian':
                 //pointwise gaussian weighting; different weight factor for each sample based on local density.
                 //to return the weight of this sample, need to know the bandwidth assigned to this sample
-                return Math.exp(-1 * Math.pow(distance, this.exponent) / Math.pow((this.sigma * this.bandwidthLocality * Math.sqrt(bandwidthFactor)), this.exponent));
+                return Math.exp(-1 * Math.pow(distance, this.exponent) / Math.pow((this.sigma * Math.sqrt(bandwidthFactor)), this.exponent));
                 break;
             case 'constant':
                 return 1;
