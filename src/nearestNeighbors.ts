@@ -87,7 +87,7 @@ export class NearestNeighbors extends LearningAlgorithm {
     }
 
     query(abt:ABT):NearestNeighborsModel {
-        return new NearestNeighborsModel(abt.descriptiveInstances, abt.targetInstances, this.k, this.sigma, this.exponent, this.distanceWeighting, this.distanceMetric, this.featureWeights, this.zeroDistanceHandling);
+        return new NearestNeighborsModel(abt.descriptiveInstances, abt.targetInstances, this.k, this.sigma, this.exponent, this.bandwidthLocality, this.distanceWeighting, this.distanceMetric, this.featureWeights, this.zeroDistanceHandling);
     }
 }
 
