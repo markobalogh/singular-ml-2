@@ -22,9 +22,13 @@ export declare class NearestNeighbors extends LearningAlgorithm {
      */
     exponent: number;
     /**
-     * Parameter acting as the proportionality factor between the sigma and the bandwidth used in Abramson's pointwise gaussian distance weighting.
+     * Parameter acting that determines the fraction of all templates that are used to contribute to each local sample density estimate in the abramson's pointwise gaussian distance weighting process.
      *
-     * Default value: 0.5
+     * The asymptotically ideal number of samples to estimate sample density is n^(4/d+4). Therefore a good initial guess for bandwidth locality is n^(4/d+4) / n.
+     *
+     * However, higher values are safer. 0.1 will tend to be fine.
+     *
+     * Default value: 0.1
      */
     bandwidthLocality: number;
     /**
