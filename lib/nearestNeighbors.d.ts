@@ -1,7 +1,7 @@
 import { LearningAlgorithm } from './learningAlgorithm';
 import { Model } from './model';
 import { ABT } from './abt';
-export declare type DistanceWeighting = 'generalizedGaussian' | 'constant';
+export declare type DistanceWeighting = 'generalizedGaussian' | 'constant' | 'abramsonsPointwiseGaussian';
 export declare type ZeroDistanceHandling = 'continue' | 'remove' | 'return';
 export declare type DistanceMetric = 'euclidean' | 'mahalanobis';
 export declare class NearestNeighbors extends LearningAlgorithm {
@@ -21,6 +21,12 @@ export declare class NearestNeighbors extends LearningAlgorithm {
      * Default value: 2
      */
     exponent: number;
+    /**
+     * Parameter acting as the proportionality factor between the sigma and the bandwidth used in Abramson's pointwise gaussian distance weighting.
+     *
+     * Default value: 0.5
+     */
+    bandwidthLocality: number;
     /**
      * Each number in this list represents the weight of the corresponding feature during effective distance calculations.
      *
@@ -55,13 +61,24 @@ export declare class NearestNeighborsModel extends Model<number[], {
     k: number | undefined;
     sigma: number;
     exponent: number;
+    bandwidthLocality: number;
     distanceWeighting: DistanceWeighting;
     distanceMetric: DistanceMetric;
     featureWeights: number[] | undefined;
     zeroDistanceHandling: ZeroDistanceHandling;
     private covarianceMatrix;
     private inverseCovarianceMatrix;
-    constructor(templates: number[][], targets: number[][], k: number | undefined, sigma: number, exponent: number, distanceWeighting: DistanceWeighting, distanceMetric: DistanceMetric, featureWeights: number[] | undefined, zeroDistanceHandling: ZeroDistanceHandling);
+    /**
+     * Bandwidth factors used to determine the bandwidth used on a per-sample basis when using Abramson's pointwise gaussian distance weighting.
+     */
+    private bandwidthFactors;
+    constructor(templates: number[][], targets: number[][], k: number | undefined, sigma: number, exponent: number, bandwidthLocality: number, distanceWeighting: DistanceWeighting, distanceMetric: DistanceMetric, featureWeights: number[] | undefined, zeroDistanceHandling: ZeroDistanceHandling);
+    /**
+     * Calculates the bandwidth factors used in Abramson's pointwise Gaussian distance weighting.
+     *
+     * Should be run once before any queries are made. Right now we call it in the class constructor when the class is configured to use Abramson's pointwise Gaussian distance weighting.
+     */
+    private calculateBandwidthFactors;
     /**
      * Calculate the covariance matrix from all templates
      */
@@ -71,8 +88,19 @@ export declare class NearestNeighborsModel extends Model<number[], {
      */
     private invertMatrix;
     evaluateDistance(instanceA: number[], instanceB: number[], featureWeights?: number[]): number;
+    /**
+     * Measures the distances from a query instance to all template instances.
+     */
     private measureDistances;
+    /**
+     * Returns the weight assigned to a sample, as a function of its distance.
+     *
+     * Also accepts a bandwidth factor used with abramson's pointwise gaussian distance weighting.
+     */
     private applyDistanceWeighting;
+    /**
+     * From a list of distances, computes the result of a distance-weighted vote from the target value corresponding to each template.
+     */
     private vote;
     query(instance: number[]): {
         prediction: number;
