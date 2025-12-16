@@ -4,7 +4,7 @@ import { sum } from 'lodash';
 import { Model } from './model';
 import { TestResult } from './scoringFunction';
 import { ABT } from './abt';
-export type DistanceWeighting = 'generalizedGaussian'|'constant';
+export type DistanceWeighting = 'generalizedGaussian'|'constant'|'abramsonsPointwiseGaussian';
 export type ZeroDistanceHandling = 'continue'|'remove'|'return';
 export type DistanceMetric = 'euclidean' | 'mahalanobis';
 
@@ -24,7 +24,13 @@ export class NearestNeighbors extends LearningAlgorithm {
      * 
      * Default value: 2
      */
-    public exponent:number = 2;
+    public exponent: number = 2;
+    /**
+     * Parameter acting as the proportionality factor between the sigma and the bandwidth used in Abramson's pointwise gaussian distance weighting. 
+     * 
+     * Default value: 0.5 
+     */
+    public bandwidthLocality: number = 0.5;
     /**
      * Each number in this list represents the weight of the corresponding feature during effective distance calculations. 
      * 
@@ -90,12 +96,48 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
     private covarianceMatrix: number[][] | null = null;
     private inverseCovarianceMatrix: number[][] | null = null;
 
-    constructor(public templates:number[][], public targets:number[][], public k:number|undefined, public sigma:number, public exponent:number, public distanceWeighting:DistanceWeighting, public distanceMetric:DistanceMetric, public featureWeights:number[]|undefined, public zeroDistanceHandling:ZeroDistanceHandling) {
+    /**
+     * Bandwidth factors used to determine the bandwidth used on a per-sample basis when using Abramson's pointwise gaussian distance weighting.
+     */
+    private bandwidthFactors: number[] = [];
+
+    constructor(public templates:number[][], public targets:number[][], public k:number|undefined, public sigma:number, public exponent:number, public bandwidthLocality:number, public distanceWeighting:DistanceWeighting, public distanceMetric:DistanceMetric, public featureWeights:number[]|undefined, public zeroDistanceHandling:ZeroDistanceHandling) {
         super();
 
         // Calculate the covariance matrix if using Mahalanobis distance
         if (this.distanceMetric === 'mahalanobis') {
+            console.log(`${new Date().toLocaleString()}: Calculating covariance matrix for Mahalanobis distance metric...`);
             this.calculateCovarianceMatrix();
+            console.log(`${new Date().toLocaleString()}: ...done.`);
+        }
+
+        // if using abramson's pointwise gaussian, we need to calculate the bandwidth factors for each sample.
+        if (this.distanceWeighting == 'abramsonsPointwiseGaussian') {
+            console.log(`${new Date().toLocaleString()}: Calculating bandwidth factors for Abramson's pointwise Gaussian distance weighting...`);
+            this.calculateBandwidthFactors();
+            console.log(`${new Date().toLocaleString()}: ...done.`);
+        } else {
+            //fill with dummy data otherwise.
+            this.bandwidthFactors = new Array<number>(this.templates.length).fill(1);
+        }
+    }
+
+    /**
+     * Calculates the bandwidth factors used in Abramson's pointwise Gaussian distance weighting.
+     * 
+     * Should be run once before any queries are made. Right now we call it in the class constructor when the class is configured to use Abramson's pointwise Gaussian distance weighting.
+     */
+    private calculateBandwidthFactors() {
+        //preallocate an array to hold the bandwidth factors
+        this.bandwidthFactors = new Array<number>(this.templates.length);
+        //iterate through the samples
+        for (let i = 0; i < this.templates.length; i++) {
+            //measure distances from this sample to all others.
+            let distances = this.measureDistances(this.templates[i]).sort((a, b) => a - b); //distances in ascending order
+            //heuristic: the ideal number of samples to estimate sample density is sqrt(n)
+            distances = distances.slice(1, Math.ceil(Math.sqrt(this.templates.length)+1)); //+1 because the first distance will be zero (distance to itself)
+            //use the average distance among these samples as the bandwidth factor for this sample
+            this.bandwidthFactors[i] = mean(distances);
         }
     }
 
@@ -264,18 +306,32 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
         }
     }
 
+
+    /**
+     * Measures the distances from a query instance to all template instances.
+     */
     private measureDistances(queryInstance:number[]):number[] {
-        let returnArray = new Array<number>(this.templates.length);
-        for (let i=0;i<this.templates.length;i++) {
+        let returnArray = new Array<number>(this.templates.length-1);
+        for (let i = 0; i < this.templates.length; i++) {
             returnArray[i] = this.evaluateDistance(queryInstance, this.templates[i], this.featureWeights);
         }
         return returnArray;
     }
 
-    private applyDistanceWeighting(distance:number):number {
+    /**
+     * Returns the weight assigned to a sample, as a function of its distance. 
+     * 
+     * Also accepts a bandwidth factor used with abramson's pointwise gaussian distance weighting.
+     */
+    private applyDistanceWeighting(distance:number, bandwidthFactor:number):number {
         switch (this.distanceWeighting) {
             case 'generalizedGaussian':
                 return Math.exp(-1 * Math.pow(distance, this.exponent) / Math.pow(this.sigma, this.exponent));
+                break;
+            case 'abramsonsPointwiseGaussian':
+                //pointwise gaussian weighting; different weight factor for each sample based on local density.
+                //to return the weight of this sample, need to know the bandwidth assigned to this sample
+                return Math.exp(-1 * Math.pow(distance, this.exponent) / Math.pow((this.sigma * this.bandwidthLocality * Math.sqrt(bandwidthFactor)), this.exponent));
                 break;
             case 'constant':
                 return 1;
@@ -286,60 +342,49 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
         }
     }
 
-    private vote(distances:number[], queryInstance:number[]):{prediction:number,confidence:number}[] {
+    /**
+     * From a list of distances, computes the result of a distance-weighted vote from the target value corresponding to each template. 
+     */
+    private vote(distances:number[]):{prediction:number,confidence:number}[] {
         let distancesAndVotes = distances.map((value,index)=>{
-            return {distance:distances[index], targets:this.targets[index]}
+            return {distance:distances[index], targets:this.targets[index], bandwidthFactor: this.bandwidthFactors[index]}
         }).sort((a,b)=>a.distance - b.distance);
         if (this.k) {
             distancesAndVotes = distancesAndVotes.slice(0, this.k);
         }
-        distances = distancesAndVotes.map(value=>value.distance);
-        let votes = distancesAndVotes.map(value=>value.targets);
-        //check if any neighboring instance is a distance of zero away from the query instance.
-        let zeroIndex = distances.findIndex(distance=>distance == 0);
-        if (zeroIndex != -1) {
-            if (this.zeroDistanceHandling == 'continue') {
-                //do nothing
-            } else if (this.zeroDistanceHandling == 'return') {
-                return votes[zeroIndex].map(value=>{return {prediction:value, confidence:1}});
+        if (this.zeroDistanceHandling !== 'continue') {
+            //check if any neighboring instance is a distance of zero away from the query instance.
+            let zeroIndex = distances.findIndex(distance=>distance == 0);
+            if (this.zeroDistanceHandling == 'return') {
+                return distancesAndVotes[zeroIndex].targets.map(value=>{return {prediction:value, confidence:1}});
             } else if (this.zeroDistanceHandling == 'remove') {
                 //note how inefficient this is
-                votes = votes.filter((value,index)=>distances[index] != 0);
-                distances = distances.filter(distance=>distance != 0);
+                distancesAndVotes = distancesAndVotes.filter((value,index)=>distances[index] != 0);
             }
         }
         //weigh the votes by distance
-        let weights = distances.map(distance=>this.applyDistanceWeighting(distance));
-        let returnedPrediction:number[] = [];
-        //return a testResult object for each target feature
-        let returnArray:{prediction:number,confidence:number}[] = [];
-        //check if the closest instance got a weight of zero.
-        if (weights[0] == 0) {
-            //in that case, we return the instance exactly as we got it, because we can't provide any predictive value.
-            returnArray = queryInstance.map((val,index)=>{
-                return {prediction:val, confidence:0};
-            });
-        } else {
-            //if not, return the weighted average of the votes
-            for (let i=0;i<votes[0].length;i++) {
-                let sum = 0;
-                let sumweights = 0;
-                //potential optimization: sumweights will be the same for each requested prediction. here we repeat its computation for each requested prediction.
-                for (let k=0;k<votes.length;k++) {
-                    sum += votes[k][i] * weights[k];
-                    sumweights += weights[k];
-                }
-                returnArray.push({
-                    prediction: sum/sumweights,
-                    confidence: sumweights
-                });
+        let weights = distancesAndVotes.map(value=>this.applyDistanceWeighting(value.distance, value.bandwidthFactor));
+        //return a prediction for each target feature. Confidence will be provided by the total weight contributing to the estimate.
+        let returnArray: { prediction: number, confidence: number }[] = new Array(distancesAndVotes[0].targets.length);
+        //if not, return the weighted average of the votes
+        for (let i=0;i<distancesAndVotes[0].targets.length;i++) {
+            let sum = 0;
+            let sumweights = 0;
+            //potential optimization: sumweights will be the same for each requested prediction. here we repeat its computation for each requested prediction.
+            for (let k=0;k<distancesAndVotes.length;k++) {
+                sum += distancesAndVotes[k].targets[i] * weights[k];
+                sumweights += weights[k];
             }
+            returnArray[i] = {
+                prediction: sum / sumweights,
+                confidence: sumweights
+            };
         }
         return returnArray;
     }
 
     query(instance:number[]):{prediction:number,confidence:number}[] {
-        return this.vote(this.measureDistances(instance), instance);
+        return this.vote(this.measureDistances(instance));
     }
 
     /**
@@ -354,63 +399,49 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
         }
     {
         let distancesAndVotes = distances.map((value,index)=>{
-            return {distance:distances[index], targets:this.targets[index]}
+            return {distance:distances[index], targets:this.targets[index], bandwidthFactor: this.bandwidthFactors[index]}
         }).sort((a,b)=>a.distance - b.distance);
         if (this.k) {
             distancesAndVotes = distancesAndVotes.slice(0, this.k);
         }
-        distances = distancesAndVotes.map(value=>value.distance);
-        let votes = distancesAndVotes.map(value=>value.targets);
-        //check if any neighboring instance is a distance of zero away from the query instance.
-        let zeroIndex = distances.findIndex(distance=>distance == 0);
-        if (zeroIndex != -1) {
-            if (this.zeroDistanceHandling == 'continue') {
-                //do nothing
-            } else if (this.zeroDistanceHandling == 'return') {
+        if (this.zeroDistanceHandling !== 'continue') {
+            //check if any neighboring instance is a distance of zero away from the query instance.
+            let zeroIndex = distances.findIndex(distance=>distance == 0);
+            if (this.zeroDistanceHandling == 'return') {
                 return {
-                    output: votes[zeroIndex].map(value => { return { prediction: value, confidence: 1 } }),
+                    output: distancesAndVotes[zeroIndex].targets.map(value => { return { prediction: value, confidence: 1 } }),
                     distances: [0],
                     weights: [1],
-                    votes: [votes[zeroIndex]]
+                    votes: [distancesAndVotes[zeroIndex].targets]
                 }
             } else if (this.zeroDistanceHandling == 'remove') {
                 //note how inefficient this is
-                votes = votes.filter((value,index)=>distances[index] != 0);
-                distances = distances.filter(distance=>distance != 0);
+                distancesAndVotes = distancesAndVotes.filter((value,index)=>distances[index] != 0);
             }
         }
         //weigh the votes by distance
-        let weights = distances.map(distance=>this.applyDistanceWeighting(distance));
-        let returnedPrediction:number[] = [];
-        //return a testResult object for each target feature
-        let returnArray:{prediction:number,confidence:number}[] = [];
-        //check if the closest instance got a weight of zero.
-        if (weights[0] == 0) {
-            //in that case, we return the instance exactly as we got it, because we can't provide any predictive value.
-            returnArray = queryInstance.map((val,index)=>{
-                return {prediction:val, confidence:0};
-            });
-        } else {
-            //if not, return the weighted average of the votes
-            for (let i=0;i<votes[0].length;i++) {
-                let sum = 0;
-                let sumweights = 0;
-                //potential optimization: sumweights will be the same for each requested prediction. here we repeat its computation for each requested prediction.
-                for (let k=0;k<votes.length;k++) {
-                    sum += votes[k][i] * weights[k];
-                    sumweights += weights[k];
-                }
-                returnArray.push({
-                    prediction: sum/sumweights,
-                    confidence: sumweights
-                });
+        let weights = distancesAndVotes.map(value=>this.applyDistanceWeighting(value.distance, value.bandwidthFactor));
+        //return a prediction for each target feature. Confidence will be provided by the total weight contributing to the estimate.
+        let returnArray: { prediction: number, confidence: number }[] = new Array(distancesAndVotes[0].targets.length);
+        //if not, return the weighted average of the votes
+        for (let i=0;i<distancesAndVotes[0].targets.length;i++) {
+            let sum = 0;
+            let sumweights = 0;
+            //potential optimization: sumweights will be the same for each requested prediction. here we repeat its computation for each requested prediction.
+            for (let k=0;k<distancesAndVotes.length;k++) {
+                sum += distancesAndVotes[k].targets[i] * weights[k];
+                sumweights += weights[k];
             }
+            returnArray[i] = {
+                prediction: sum / sumweights,
+                confidence: sumweights
+            };
         }
         return {
             output: returnArray,
             distances: distances,
             weights: weights,
-            votes: votes
+            votes: distancesAndVotes.map(vote=>vote.targets)
         }
     }
 
