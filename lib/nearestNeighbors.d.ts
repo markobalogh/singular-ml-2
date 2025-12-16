@@ -80,9 +80,11 @@ export declare class NearestNeighborsModel extends Model<number[], {
     /**
      * Calculates the bandwidth factors used in Abramson's pointwise Gaussian distance weighting.
      *
-     * Should be run once before any queries are made. Right now we call it in the class constructor when the class is configured to use Abramson's pointwise Gaussian distance weighting.
+     * Should be run once before any queries are made, and any time the `bandwidthLocality` parameter is changed.
+     *
+     * We don't calculate this eagerly as its an O(n^2) operation.
      */
-    private calculateBandwidthFactors;
+    calculateBandwidthFactors(): void;
     /**
      * Calculate the covariance matrix from all templates
      */

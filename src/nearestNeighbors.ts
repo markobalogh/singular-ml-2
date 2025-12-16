@@ -115,23 +115,19 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
             console.log(`${new Date().toLocaleString()}: ...done.`);
         }
 
-        // if using abramson's pointwise gaussian, we need to calculate the bandwidth factors for each sample.
-        if (this.distanceWeighting == 'abramsonsPointwiseGaussian') {
-            console.log(`${new Date().toLocaleString()}: Calculating bandwidth factors for Abramson's pointwise Gaussian distance weighting...`);
-            this.calculateBandwidthFactors();
-            console.log(`${new Date().toLocaleString()}: ...done.`);
-        } else {
-            //fill with dummy data otherwise.
-            this.bandwidthFactors = new Array<number>(this.templates.length).fill(1);
-        }
+        //fill with dummy data for now. 
+        this.bandwidthFactors = new Array<number>(this.templates.length).fill(1);
     }
 
     /**
      * Calculates the bandwidth factors used in Abramson's pointwise Gaussian distance weighting.
      * 
-     * Should be run once before any queries are made. Right now we call it in the class constructor when the class is configured to use Abramson's pointwise Gaussian distance weighting.
+     * Should be run once before any queries are made, and any time the `bandwidthLocality` parameter is changed.
+     * 
+     * We don't calculate this eagerly as its an O(n^2) operation.
      */
-    private calculateBandwidthFactors() {
+    calculateBandwidthFactors() {
+        console.log(`${new Date().toLocaleString()}: Calculating bandwidth factors for Abramson's pointwise Gaussian distance weighting...`);
         //preallocate an array to hold the bandwidth factors
         this.bandwidthFactors = new Array<number>(this.templates.length);
         //iterate through the samples
@@ -142,6 +138,7 @@ export class NearestNeighborsModel extends Model<number[], {prediction:number,co
             //use the average distance among these samples as the bandwidth factor for this sample
             this.bandwidthFactors[i] = mean(distances);
         }
+        console.log(`${new Date().toLocaleString()}: ...done.`);
     }
 
     /**
